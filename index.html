@@ -1,71 +1,56 @@
-<!doctype html><html>
-<head>
-  <meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
-  <script>
-    window.va = window.va || function () {
-    (window.vaq = window.vaq || []).push(arguments);
-    };
-  </script>
-<script defer src="/_vercel/insights/script.js"></script>
-</head>
-<body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Text Slang Translator</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Instrument+Sans:wght@400..600&display=swap">
 <style>
-  /* Layout: input and output sit side by side on wide screens (stacked on phones), joined by an arrow; the Translate button hangs under the input. */
+  /* Layout: one column, a sent bubble (input, accent blue) answered by a received bubble (output, plain surface), joined by a single Translate button. */
   :root {
-    --bg: #E9EFEC;
-    --surface: #FBFDFC;
-    --ink: #0F1D1A;
-    --muted: #55655F;
-    --ph: #66766F;
-    --line: #CBD8D2;
-    --chip: #E8F0EC;
-    --sent: #0B7A6B;
+    --bg: #E8EDF2;
+    --surface: #FFFFFF;
+    --ink: #101A24;
+    --muted: #5F6C78;
+    --ph: #6B7885;
+    --line: #CFD8E1;
+    --chip: #EDF1F5;
+    --sent: #3347D8;
     --sent-fg: #FFFFFF;
-    --sent-ph: rgba(255, 255, 255, 0.8);
-    --btn-bg: #0F1D1A;
+    --sent-ph: rgba(255, 255, 255, 0.78);
+    --btn-bg: #101A24;
     --btn-fg: #FFFFFF;
     --mark-bg: #FFD93D;
     --mark-fg: #101A24;
-    --ring: rgba(11, 122, 107, 0.35);
-    --shadow: 0 1px 0 rgba(15, 29, 26, 0.04), 0 14px 30px -20px rgba(15, 29, 26, 0.35);
+    --ring: rgba(51, 71, 216, 0.35);
     --font-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
     --font-body: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-    --gap: 2.25rem;
-    --label-h: 1.9rem;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #0B1311;
-      --surface: #14201D;
-      --ink: #E7F0EC;
-      --muted: #94A59E;
-      --ph: #8A9B94;
-      --line: #26352F;
-      --chip: #1F2D28;
-      --sent: #0F8473;
-      --btn-bg: #E7F0EC;
-      --btn-fg: #0B1311;
-      --ring: rgba(70, 200, 180, 0.45);
-      --shadow: 0 14px 30px -20px rgba(0, 0, 0, 0.8);
+      --bg: #0D131A;
+      --surface: #17202A;
+      --ink: #E9EFF5;
+      --muted: #9AA7B4;
+      --ph: #8C99A6;
+      --line: #2A3744;
+      --chip: #223040;
+      --sent: #4A5CEE;
+      --btn-bg: #E9EFF5;
+      --btn-fg: #0D131A;
+      --ring: rgba(140, 152, 255, 0.5);
       color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #0B1311;
-    --surface: #14201D;
-    --ink: #E7F0EC;
-    --muted: #94A59E;
-    --ph: #8A9B94;
-    --line: #26352F;
-    --chip: #1F2D28;
-    --sent: #0F8473;
-    --btn-bg: #E7F0EC;
-    --btn-fg: #0B1311;
-    --ring: rgba(70, 200, 180, 0.45);
-    --shadow: 0 14px 30px -20px rgba(0, 0, 0, 0.8);
+    --bg: #0D131A;
+    --surface: #17202A;
+    --ink: #E9EFF5;
+    --muted: #9AA7B4;
+    --ph: #8C99A6;
+    --line: #2A3744;
+    --chip: #223040;
+    --sent: #4A5CEE;
+    --btn-bg: #E9EFF5;
+    --btn-fg: #0D131A;
+    --ring: rgba(140, 152, 255, 0.5);
     color-scheme: dark;
   }
 
@@ -75,24 +60,24 @@
     font-family: var(--font-body);
     font-size: 16px;
     line-height: 1.5;
-    padding-block: clamp(1.5rem, 6vw, 4.5rem);
+    padding-block: clamp(1.5rem, 6vw, 4rem);
     padding-left: max(16px, env(safe-area-inset-left, 0px));
     padding-right: max(16px, env(safe-area-inset-right, 0px));
   }
   .wrap {
-    max-width: 64rem;
+    max-width: 44rem;
     margin-inline: auto;
     display: flex;
     flex-direction: column;
-    gap: 1.75rem;
+    gap: 1.25rem;
   }
   h1 {
-    margin: 0;
+    margin: 0 0 0.5rem;
     font-family: var(--font-display);
     font-weight: 800;
-    font-size: clamp(2.2rem, 8vw, 4rem);
-    line-height: 1;
-    letter-spacing: -0.04em;
+    font-size: clamp(2.1rem, 7.5vw, 3.5rem);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
     text-wrap: balance;
   }
   h1 .hl {
@@ -102,49 +87,35 @@
     text-decoration-skip-ink: none;
     text-underline-offset: 0.07em;
   }
-
-  .grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "field" "go" "out";
-    gap: 1.25rem;
-  }
-  .field { grid-area: field; display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
-  .go { grid-area: go; }
-  .recv { grid-area: out; }
-
+  .field { display: flex; flex-direction: column; gap: 0.5rem; }
   label {
     font-size: 0.92rem;
     font-weight: 600;
     letter-spacing: 0.01em;
-    line-height: 1.4;
     color: var(--muted);
   }
 
   .bubble { position: relative; min-width: 0; }
   .sent {
-    flex: 1;
     background: var(--sent);
     color: var(--sent-fg);
-    border-radius: 1.6rem 1.6rem 0.4rem 1.6rem;
-    box-shadow: var(--shadow);
+    border-radius: 1.5rem 1.5rem 0.4rem 1.5rem;
     transition: box-shadow 0.15s;
   }
   .sent:focus-within { box-shadow: 0 0 0 4px var(--ring); }
   .recv {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 1.6rem 1.6rem 1.6rem 0.4rem;
-    box-shadow: var(--shadow);
+    border-radius: 1.5rem 1.5rem 1.5rem 0.4rem;
   }
 
   textarea {
     display: block;
     width: 100%;
     box-sizing: border-box;
-    min-height: 6.5rem;
+    min-height: 6.25rem;
     margin: 0;
-    padding: 1.2rem 3.5rem 1.2rem 1.4rem;
+    padding: 1.15rem 3.5rem 1.15rem 1.3rem;
     border: 0;
     outline: none;
     resize: none;
@@ -164,8 +135,8 @@
 
   .out {
     box-sizing: border-box;
-    min-height: 6.5rem;
-    padding: 1.2rem 3.5rem 1.2rem 1.4rem;
+    min-height: 6.25rem;
+    padding: 1.15rem 3.5rem 1.15rem 1.3rem;
     font-size: 1.25rem;
     line-height: 1.45;
     white-space: pre-wrap;
@@ -187,36 +158,10 @@
     font-weight: 600;
   }
 
-  .arrow {
-    display: none;
-    position: absolute;
-    z-index: 1;
-    top: 50%;
-    left: calc(var(--gap) / -2 - 1.25rem);
-    width: 2.5rem;
-    height: 2.5rem;
-    margin-top: -1.25rem;
-    place-items: center;
-    border-radius: 50%;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    color: var(--sent);
-    box-shadow: var(--shadow);
-  }
-  .arrow svg {
-    width: 1.15rem;
-    height: 1.15rem;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
   .icon-btn {
     position: absolute;
-    top: 0.65rem;
-    right: 0.65rem;
+    top: 0.6rem;
+    right: 0.6rem;
     width: 2.5rem;
     height: 2.5rem;
     display: grid;
@@ -247,38 +192,27 @@
   .icon-btn.done .i-copy { display: none; }
   .icon-btn.done .i-check { display: block; }
 
+  .actions { display: flex; }
   .go {
-    justify-self: stretch;
-    min-height: 3.1rem;
-    padding: 0 2rem;
+    min-height: 3rem;
+    padding: 0 1.9rem;
     border: 0;
     border-radius: 999px;
     background: var(--btn-bg);
     color: var(--btn-fg);
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     letter-spacing: -0.01em;
     cursor: pointer;
-    transition: transform 0.12s, box-shadow 0.12s;
+    transition: transform 0.1s, filter 0.15s;
   }
-  .go:hover { transform: translateY(-1px); box-shadow: 0 10px 20px -12px rgba(0, 0, 0, 0.55); }
-  .go:active { transform: translateY(1px); box-shadow: none; }
+  .go:hover { filter: brightness(1.18); }
+  .go:active { transform: translateY(1px); }
   .go:focus-visible { outline: 3px solid var(--sent); outline-offset: 3px; }
 
-  @media (min-width: 52rem) {
-    .grid {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      grid-template-areas: "field out" "go .";
-      column-gap: var(--gap);
-      row-gap: 1.5rem;
-    }
-    .go { justify-self: start; }
-    .recv { margin-top: var(--label-h); }
-    .arrow { display: grid; }
-    textarea, .out { min-height: 9.5rem; font-size: 1.35rem; }
-  }
   @media (max-width: 480px) {
+    .go { width: 100%; }
     textarea, .out { font-size: 1.15rem; }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -289,27 +223,26 @@
 <main class="wrap">
   <h1>Text <span class="hl">Slang</span> Translator</h1>
 
-  <div class="grid">
-    <div class="field">
-      <label for="input">Paste text here:</label>
-      <div class="bubble sent" id="sentBubble">
-        <textarea id="input" rows="3" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
-        <button class="icon-btn" id="clear" type="button" aria-label="Clear" hidden>
-          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <button class="go" id="go" type="button">Translate</button>
-
-    <div class="bubble recv">
-      <span class="arrow" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
-      <div class="out is-ph" id="output" role="region" aria-label="Translation" aria-live="polite"></div>
-      <button class="icon-btn" id="copy" type="button" aria-label="Copy translation" disabled>
-        <svg class="i-copy" viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 5.5v-1a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h1"/></svg>
-        <svg class="i-check" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg>
+  <div class="field">
+    <label for="input">Paste text here:</label>
+    <div class="bubble sent">
+      <textarea id="input" rows="3" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+      <button class="icon-btn" id="clear" type="button" aria-label="Clear" hidden>
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
       </button>
     </div>
+  </div>
+
+  <div class="actions">
+    <button class="go" id="go" type="button">Translate</button>
+  </div>
+
+  <div class="bubble recv">
+    <div class="out is-ph" id="output" role="region" aria-label="Translation" aria-live="polite"></div>
+    <button class="icon-btn" id="copy" type="button" aria-label="Copy translation" disabled>
+      <svg class="i-copy" viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 5.5v-1a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h1"/></svg>
+      <svg class="i-check" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg>
+    </button>
   </div>
 </main>
 
@@ -325,81 +258,25 @@
     });
   }
 
-  // Laughter and reactions
+  // Everyday chat
   add('lol', 'laughing out loud');
   add('lmao', 'laughing my a** off');
   add('lmfao', 'laughing my f***ing a** off');
-  add('rofl rotfl fotfl fofl', 'rolling on the floor laughing');
-  add('roflmao', 'rolling on the floor laughing my a** off');
-  add('csl', "can't stop laughing");
-  add('xd', 'laughing');
-  add('omg', 'oh my god');
-  add('omfg', 'oh my f***ing god');
-  add('zomg', 'oh my god');
-  add('oml', 'oh my lord');
-  add('wtf', 'what the f***');
-  add('wth', 'what the heck');
-  add('wtaf', 'what the actual f***');
-  add('ffs', "for f***'s sake");
-  add('stfu', 'shut the f*** up');
-  add('gtfo', 'get the f*** out');
-  add('jfc', 'Jesus f***ing Christ');
-  add('fml', 'f*** my life');
-  add('smh', 'shaking my head');
-  add('smdh', 'shaking my damn head');
-  add('smfh', 'shaking my f***ing head');
-  add('idgaf', "I don't give a f***");
-  add('bs', 'bulls***');
-  add('af asf', 'as f***', { c: 'lower' });
-  add('pita', 'pain in the a**');
-  add('orly', 'oh really');
-  add('oic', 'oh, I see');
-  add('kys', 'kill yourself');
-  add('kms', 'kill myself');
-
-  // Chat basics
+  add('rofl', 'rolling on the floor laughing');
   add('brb', 'be right back');
   add('btw', 'by the way');
   add('idk', "I don't know");
-  add('dk', "don't know");
   add('idc', "I don't care");
-  add('idrc', "I don't really care");
-  add('idrk', "I don't really know");
-  add('idek', "I don't even know");
-  add('idts', "I don't think so");
-  add('idr', "I don't remember");
-  add('idm', "I don't mind");
-  add('ik', 'I know');
-  add('ikr', 'I know, right');
   add('imo', 'in my opinion');
   add('imho', 'in my humble opinion');
   add('tbh', 'to be honest');
-  add('tbqh', 'to be quite honest');
-  add('tbf', 'to be fair');
   add('ngl', 'not gonna lie');
   add('fyi', 'for your information');
+  add('ikr', 'I know, right');
+  add('omg', 'oh my god');
+  add('smh', 'shaking my head');
   add('ttyl', 'talk to you later');
-  add('ttyt', 'talk to you tomorrow');
-  add('ttys', 'talk to you soon');
-  add('ttfn', 'ta-ta for now');
   add('gtg g2g', 'got to go');
-  add('gtgb', 'got to go, bye');
-  add('b4n', 'bye for now');
-  add('cya cu', 'see you');
-  add('cul8r syl', 'see you later');
-  add('cwyl', 'chat with you later');
-  add('bbl', 'be back later');
-  add('bbs', 'be back soon');
-  add('bbiab', 'be back in a bit');
-  add('brt', 'be right there');
-  add('wb', 'welcome back');
-  add('gn gnite gnight', 'good night');
-  add('gm', 'good morning');
-  add('hagd', 'have a great day');
-  add('tc', 'take care');
-  add('hbd', 'happy birthday');
-  add('xmas', 'Christmas');
-  add('tgif', "thank god it's Friday");
   add('nvm', 'never mind');
   add('asap', 'as soon as possible');
   add('tmi', 'too much information');
@@ -407,86 +284,28 @@
   add('irl', 'in real life');
   add('afk', 'away from keyboard');
   add('dm', 'direct message');
-  add('dms', 'direct messages');
   add('pm', 'private message', { notTime: true });
   add('ootd', 'outfit of the day');
   add('fomo', 'fear of missing out');
   add('yolo', 'you only live once');
   add('iykyk', 'if you know, you know');
-  add('jsyk', 'just so you know');
-  add('ftr', 'for the record');
-  add('fwiw', "for what it's worth");
-  add('iirc', 'if I recall correctly');
-  add('iiuc', 'if I understand correctly');
-  add('afaik', 'as far as I know');
-  add('afaict', 'as far as I can tell');
-  add('otoh', 'on the other hand');
-  add('iow', 'in other words');
-  add('aka', 'also known as');
-  add('ymmv', 'your mileage may vary');
-  add('ianal', 'I am not a lawyer');
-  add('hth', 'hope this helps');
-  add('ftfy', 'fixed that for you');
-  add('mrw', 'my reaction when');
-  add('btdt', 'been there, done that');
-  add('bif', 'before I forget');
-  add('j2lyk', 'just to let you know');
-  add('mtf', 'more to follow');
-  add('g4i', 'go for it');
-  add('n1', 'nice one');
-  add('prw', 'parents are watching');
-  add('asl', 'age, sex, location (or as hell)');
 
   // Replies and reactions
-  add('ok', 'okay');
   add('k kk', 'okay');
   add('np', 'no problem');
-  add('nbd', 'no big deal');
-  add('nw', 'no worries');
-  add('dw', "don't worry");
-  add('mb', 'my bad', { notTime: true });
-  add('nm', 'nothing much', { notTime: true });
-  add('nty', 'no thank you');
-  add('sok', "it's okay");
   add('ty', 'thank you');
-  add('tq 10q', 'thank you');
-  add('tysm', 'thank you so much');
-  add('tyvm', 'thank you very much');
-  add('thx thnx tks tnx thks thnks', 'thanks');
+  add('thx thnx', 'thanks');
   add('yw', "you're welcome");
-  add('sry srry soz', 'sorry');
   add('jk', 'just kidding');
   add('ofc', 'of course');
-  add('obv obvs obvi', 'obviously');
-  add('srsly', 'seriously');
-  add('defo', 'definitely');
-  add('totes', 'totally');
-  add('probs', 'probably');
-  add('alr aight ight', 'alright');
-  add('yh', 'yeah');
-  add('nvr', 'never');
-  add('ig', 'I guess', { c: 'lower' });
-  add('yk', 'you know');
-  add('ykwim', 'you know what I mean');
-  add('ikwym', 'I know what you mean');
-  add('iykwim', 'if you know what I mean');
   add('ily', 'I love you');
-  add('ilu', 'I love you');
-  add('ilysm', 'I love you so much');
-  add('xoxo xo', 'hugs and kisses');
-  add('xx xxx', 'kisses');
+  add('idgaf', "I don't give a f***");
+  add('wtf', 'what the f***');
+  add('wyd', 'what are you doing');
   add('hmu', 'hit me up');
   add('lmk', 'let me know');
-  add('otw omw', 'on my way');
-  add('wyd', 'what are you doing');
-  add('wya', 'where you at');
-  add('wru', 'where are you');
-  add('hru', 'how are you');
-  add('hyd', 'how you doing');
-  add('wbu', 'what about you');
-  add('hbu', 'how about you');
-  add('wdym', 'what do you mean');
-  add('wtv', 'whatever');
+  add('otw', 'on the way');
+  add('idrk', "I don't really know");
   add('smth', 'something');
   add('rn', 'right now');
   add('tfw', 'that feeling when');
@@ -502,72 +321,43 @@
   add('fyp', 'for you page');
   add('pov', 'point of view');
   add('tbt', 'throwback Thursday');
-  add('wcw', 'woman crush Wednesday');
-  add('mcm', 'man crush Monday');
   add('bff', 'best friends forever');
-  add('bffs', 'best friends forever');
   add('bae', 'before anyone else');
-  add('bf', 'boyfriend (or best friend)');
-  add('gf', 'girlfriend');
-  add('fwb', 'friends with benefits');
-  add('ltr', 'long-term relationship');
   add('eli5', "explain like I'm five");
   add('tl;dr tldr', "too long; didn't read");
   add('ama', 'ask me anything');
   add('op', 'original poster (or overpowered)', { c: 'upper' });
   add('sus', 'suspicious');
   add('rip', 'rest in peace', { c: 'upper' });
+  add('fwiw', "for what it's worth");
+  add('iirc', 'if I recall correctly');
+  add('afaik', 'as far as I know');
   add('til', 'today I learned', { c: 'upper' });
   add('nsfw', 'not safe for work');
   add('sfw', 'safe for work');
-  add('tw', 'trigger warning');
-  add('cw', 'content warning');
-  add('rt', 'retweet');
   add('atm', 'at the moment', { c: 'lower' });
+  add('xoxo', 'hugs and kisses');
 
   // Gaming
   add('gg', 'good game');
-  add('ggs', 'good games');
   add('ggez', 'good game, easy');
-  add('ggwp', 'good game, well played');
   add('glhf', 'good luck, have fun');
-  add('gl', 'good luck');
-  add('hf', 'have fun');
   add('wp', 'well played');
-  add('gj', 'good job');
-  add('gz grats gratz', 'congratulations');
-  add('ez', 'easy');
-  add('pwned', 'dominated');
   add('npc', 'non-player character');
   add('xp', 'experience points');
   add('pvp', 'player versus player');
   add('pve', 'player versus environment');
   add('rng', 'random number generator (luck)');
   add('lfg', 'looking for group');
-  add('lfm', 'looking for more');
   add('nerf', 'weaken');
   add('buff', 'strengthen', { c: 'upper' });
-  add('kd', 'kill/death ratio');
-  add('kda', 'kills, deaths, assists');
-  add('fps', 'frames per second (or first-person shooter)');
-  add('hp', 'health points (or horsepower)');
-  add('dps', 'damage per second');
-  add('dlc', 'downloadable content');
-  add('rpg', 'role-playing game');
-  add('mmo', 'massively multiplayer online game');
-  add('mmorpg', 'massively multiplayer online role-playing game');
 
   // Work and school
   add('eod', 'end of day');
-  add('eow', 'end of week');
-  add('eom', 'end of month');
-  add('eoy', 'end of year');
-  add('nrn', 'no reply necessary');
   add('ooo', 'out of office', { c: 'upper' });
   add('wfh', 'work from home');
   add('ftw', 'for the win');
   add('tbd', 'to be determined');
-  add('tbc', 'to be confirmed');
   add('tba', 'to be announced');
   add('eta', 'estimated time of arrival');
   add('rsvp', 'please respond');
@@ -575,95 +365,42 @@
   add('diy', 'do it yourself');
   add('pto', 'paid time off');
   add('wip', 'work in progress');
-  add('mtg', 'meeting');
-  add('appt', 'appointment');
-  add('pfa', 'please find attached');
-  add('rgds', 'regards');
-  add('fwd', 'forwarded');
-  add('poc', 'point of contact');
   add('hw', 'homework');
 
-  // Shortened words and spellings
+  // Other common shorthand
   add('u', 'you', { c: 'lower' });
   add('r', 'are', { c: 'lower' });
   add('ur', 'your');
   add('pls plz', 'please');
-  add('bc bcoz bcuz bcz coz cuz', 'because', { c: 'lower' });
+  add('bc', 'because', { c: 'lower' });
+  add('cuz', 'because');
   add('tho', 'though');
-  add('thru', 'through');
-  add('abt', 'about');
-  add('ppl', 'people');
-  add('msg', 'message');
-  add('txt', 'text');
-  add('pic', 'picture');
-  add('pics', 'pictures');
-  add('vid', 'video');
-  add('vids', 'videos');
-  add('fav fave', 'favorite');
-  add('convo', 'conversation');
-  add('bday', 'birthday');
-  add('rly', 'really');
-  add('lil', 'little');
-  add('nite', 'night');
-  add('tonite 2nite', 'tonight');
-  add('2day', 'today');
-  add('tmrw tmr 2moro 2morrow 2mrw', 'tomorrow');
-  add('yday', 'yesterday');
-  add('wknd', 'weekend');
-  add('esp', 'especially', { c: 'lower' });
   add('gr8', 'great');
   add('l8r', 'later');
   add('b4', 'before');
-  add('m8', 'mate');
-  add('w8', 'wait');
-  add('h8', 'hate');
-  add('4ever', 'forever');
-  add('2g2bt', 'too good to be true');
-  add('a3', 'anytime, anywhere, anyplace');
-  add('adbb', 'all done, bye bye');
-  add('dnbl8', "don't be late");
-  add('gab', 'getting a beer');
-  add('sup wassup wazzup whaddup wsup', "what's up");
+  add('abt', 'about');
+  add('ppl', 'people');
+  add('msg', 'message');
+  add('tmrw tmr', 'tomorrow');
+  add('sry', 'sorry');
+  add('wbu', 'what about you');
+  add('hbu', 'how about you');
+  add('wdym', 'what do you mean');
+  add('omw', 'on my way');
+  add('nbd', 'no big deal');
+  add('bday', 'birthday');
+  add('convo', 'conversation');
+  add('fav', 'favorite');
+  add('rly', 'really');
+  add('ez', 'easy');
   add('prolly', 'probably');
   add('gonna', 'going to');
   add('wanna', 'want to');
   add('gotta', 'got to');
   add('kinda', 'kind of');
-  add('sorta', 'sort of');
-  add('outta', 'out of');
-  add('lotta', 'lot of');
   add('dunno', "don't know");
   add('lemme', 'let me');
   add('gimme', 'give me');
-  add('gotcha', 'got you');
-  add('whatcha', 'what are you');
-  add("c'mon cmon", 'come on');
-  add('ima imma', "I'm going to");
-  add('tryna', 'trying to');
-  add('finna boutta bouta', 'about to');
-  add('coulda', 'could have');
-  add('shoulda', 'should have');
-  add('woulda', 'would have');
-
-  var SLASH = Object.create(null);
-  SLASH['w/'] = 'with';
-  SLASH['w/o'] = 'without';
-  SLASH['b/c'] = 'because';
-  SLASH['n/a'] = 'not applicable';
-
-  var EMO = Object.create(null);
-  EMO['<3'] = '(heart)';
-  EMO['</3'] = '(broken heart)';
-  EMO['^_^'] = '(happy)';
-  EMO['-_-'] = '(annoyed)';
-  EMO[':)'] = '(smiling)';
-  EMO[':('] = '(sad)';
-  EMO[':d'] = '(grinning)';
-  EMO[':p'] = '(playful, tongue out)';
-  EMO[';)'] = '(winking)';
-  EMO[':/'] = '(unsure)';
-  EMO[':|'] = '(neutral)';
-  EMO[':o'] = '(surprised)';
 
   var TONES = {
     s: '(sarcastic)', j: '(joking)', srs: '(serious)', hj: '(half joking)', gen: '(genuine)',
@@ -671,19 +408,19 @@
   };
 
   // Words with no real vowels that should never become "???"
-  var NOVOWEL_OK = /^(h+m+|m+|sh+|ps+t|br+|pf+t|tsk|nth|zz+|gr+|mhm|mr|mrs|ms|dr|st|nd|rd|th|pm|vs|jr|sr|hr|hrs|wk|wks|yr|yrs|mo|mph|kph|bpm|cm|mm|km|kg|lb|lbs|oz|ml|mg|ft|tbsp|tsp|ctrl|pts|gb|kb|tb|hz|mhz|ghz|kwh|my|by|why|try|cry|dry|fly|fry|shy|sky|sly|spy|pry|wry|thy|gym|myth|lynx|hymn|sync|rhythm|nymph|crypt|gypsy|www|http|https|html|css|tv|pc|cd|dvd|usb|gps|cpu|gpu|pdf|sql|ppt)$/;
+  var NOVOWEL_OK = /^(h+m+|m+|sh+|ps+t|br+|pf+t|tsk|nth|zz+|gr+|mhm|xx+|mr|mrs|ms|dr|st|nd|rd|th|pm|vs|jr|sr|hr|hrs|wk|wks|yr|yrs|mo|mph|kph|bpm|cm|mm|km|kg|lb|lbs|oz|ml|mg|ft|tbsp|tsp|ctrl|pts|my|by|why|try|cry|dry|fly|fry|shy|sky|sly|spy|pry|wry|thy|gym|myth|lynx|hymn|sync|rhythm|nymph|crypt|gypsy|www|http|https|html|css|tv|pc|cd|dvd|usb|gps|cpu|gpu|pdf|sql|ppt)$/;
 
-  var RE = /https?:\/\/\S+|www\.\S+|\S+@\S+\.\S+|(?<!\S)(?:<3|<\/3|\^_\^|-_-|:\)|:\(|:D|:P|:O|:\||:\/|;\))(?!\S)|(?<![\w\/])(?:w\/o|b\/c|n\/a)(?![\w\/])|(?<![\w\/])w\/(?!\/)|(?<![\w\/])\/(?:srs|hj|gen|pos|neg|lh|s|j|t)(?![\w\/])|(?<!\S)\^+(?!\S)|tl;dr|[a-z0-9]+(?:['’][a-z]+)*/gi;
+  var RE = /https?:\/\/\S+|www\.\S+|\S+@\S+\.\S+|(?<![\w\/])\/(?:srs|hj|gen|pos|neg|lh|s|j|t)(?![\w\/])|(?<!\S)\^+(?!\S)|tl;dr|[a-z0-9]+(?:['’][a-z]+)*/gi;
 
   function find(tok) {
-    var lower = tok.toLowerCase().replace(/’/g, "'");
+    var lower = tok.toLowerCase();
     var e = D[lower];
     if (!e && lower.length >= 3) {
       e = D[lower.replace(/(.)\1{2,}/g, '$1')] || D[lower.replace(/(.)\1+/g, '$1')];
     }
     if (!e) return null;
     if (e.c === 'upper' && !(tok === tok.toUpperCase() && tok.length >= 2)) return null;
-    if (e.c === 'lower' && tok !== tok.toLowerCase()) return null;
+    if (e.c === 'lower' && tok !== lower) return null;
     return e;
   }
 
@@ -711,27 +448,23 @@
     var shout = isShout(text);
     var re = new RegExp(RE.source, 'gi');
     while ((m = re.exec(text)) !== null) {
-      var tok = m[0], i = m.index, low = tok.toLowerCase();
+      var tok = m[0], i = m.index;
       var before = text.slice(0, i), after = text.slice(i + tok.length);
       var rep = null, unk = false;
       if (/^(https?:|www\.)/i.test(tok) || tok.indexOf('@') > -1) continue;
-      if (EMO[low]) {
-        rep = EMO[low];
-      } else if (SLASH[low]) {
-        rep = SLASH[low];
-      } else if (tok.charAt(0) === '/') {
+      if (tok.charAt(0) === '/') {
         rep = TONES[tok.slice(1).toLowerCase()] || null;
       } else if (tok.charAt(0) === '^') {
         rep = '(the message above)';
       } else {
-        var hit = find(tok), e = hit;
+        var e = find(tok);
         if (e && e.notTime && /\d\s*$/.test(before)) e = null;
         if (e && e.standalone && !(/(^|[.!?,;\n])\s*$/.test(before) && /^\s*([.!?,;\n]|$)/.test(after))) e = null;
         if (e) {
           rep = e.t;
           if (shout && allCaps(tok)) rep = rep.toUpperCase();
           else if (/(^|[.!?\n])\s*$/.test(before)) rep = rep.charAt(0).toUpperCase() + rep.slice(1);
-        } else if (!hit && isUnknown(tok)) {
+        } else if (isUnknown(tok)) {
           unk = true;
         }
       }
@@ -749,7 +482,7 @@
   }
 
   if (typeof document === 'undefined') {
-    globalThis.__api = { translate: translate, plain: plain, dict: D };
+    globalThis.__api = { translate: translate, plain: plain };
     return;
   }
 
@@ -767,7 +500,6 @@
   var EXT = EX.map(function (s) { return plain(translate(s)); });
 
   var ta = document.getElementById('input');
-  var sentBubble = document.getElementById('sentBubble');
   var out = document.getElementById('output');
   var go = document.getElementById('go');
   var clearBtn = document.getElementById('clear');
@@ -837,902 +569,6 @@
     syncClear();
     fit();
     ta.focus();
-  });
-
-  sentBubble.addEventListener('mousedown', function (e) {
-    if (e.target === sentBubble) { e.preventDefault(); ta.focus(); }
-  });
-
-  ta.addEventListener('input', function () {
-    syncClear();
-    fit();
-    if (!ta.value.trim() && hasResult) { hasResult = false; renderIdle(); }
-  });
-  ta.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); go.click(); }
-  });
-
-  function flashDone() {
-    copyBtn.classList.add('done');
-    clearTimeout(copyTimer);
-    copyTimer = setTimeout(function () { copyBtn.classList.remove('done'); }, 1600);
-  }
-  function fallbackCopy() {
-    try {
-      var r = document.createRange();
-      r.selectNodeContents(out);
-      var s = window.getSelection();
-      s.removeAllRanges();
-      s.addRange(r);
-      if (document.execCommand && document.execCommand('copy')) flashDone();
-    } catch (err) { /* the text stays selected so it can be copied by hand */ }
-  }
-  copyBtn.addEventListener('click', function () {
-    if (copyBtn.disabled) return;
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(lastPlain).then(flashDone, fallbackCopy);
-      } else {
-        fallbackCopy();
-      }
-    } catch (err) { fallbackCopy(); }
-  });
-
-  setInterval(function () {
-    if (reduce || document.hidden || hasResult || ta.value || document.activeElement === ta) return;
-    showExample((idx + 1) % EX.length);
-  }, 5000);
-
-  ta.placeholder = EX[0];
-  renderIdle();
-  syncClear();
-  fit();
-})();
-</script>
-
-</body></html><!doctype html><html>
-<head>
-  <meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
-  <script>
-    window.va = window.va || function () {
-    (window.vaq = window.vaq || []).push(arguments);
-    };
-  </script>
-<script defer src="/_vercel/insights/script.js"></script>
-</head>
-<body>
-<title>Text Slang Translator</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Instrument+Sans:wght@400..600&display=swap">
-<style>
-  /* Layout: input and output sit side by side on wide screens (stacked on phones), joined by an arrow; the Translate button hangs under the input. */
-  :root {
-    --bg: #E9EFEC;
-    --surface: #FBFDFC;
-    --ink: #0F1D1A;
-    --muted: #55655F;
-    --ph: #66766F;
-    --line: #CBD8D2;
-    --chip: #E8F0EC;
-    --sent: #0B7A6B;
-    --sent-fg: #FFFFFF;
-    --sent-ph: rgba(255, 255, 255, 0.8);
-    --btn-bg: #0F1D1A;
-    --btn-fg: #FFFFFF;
-    --mark-bg: #FFD93D;
-    --mark-fg: #101A24;
-    --ring: rgba(11, 122, 107, 0.35);
-    --shadow: 0 1px 0 rgba(15, 29, 26, 0.04), 0 14px 30px -20px rgba(15, 29, 26, 0.35);
-    --font-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
-    --font-body: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-    --gap: 2.25rem;
-    --label-h: 1.9rem;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #0B1311;
-      --surface: #14201D;
-      --ink: #E7F0EC;
-      --muted: #94A59E;
-      --ph: #8A9B94;
-      --line: #26352F;
-      --chip: #1F2D28;
-      --sent: #0F8473;
-      --btn-bg: #E7F0EC;
-      --btn-fg: #0B1311;
-      --ring: rgba(70, 200, 180, 0.45);
-      --shadow: 0 14px 30px -20px rgba(0, 0, 0, 0.8);
-      color-scheme: dark;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #0B1311;
-    --surface: #14201D;
-    --ink: #E7F0EC;
-    --muted: #94A59E;
-    --ph: #8A9B94;
-    --line: #26352F;
-    --chip: #1F2D28;
-    --sent: #0F8473;
-    --btn-bg: #E7F0EC;
-    --btn-fg: #0B1311;
-    --ring: rgba(70, 200, 180, 0.45);
-    --shadow: 0 14px 30px -20px rgba(0, 0, 0, 0.8);
-    color-scheme: dark;
-  }
-
-  body {
-    background: var(--bg);
-    color: var(--ink);
-    font-family: var(--font-body);
-    font-size: 16px;
-    line-height: 1.5;
-    padding-block: clamp(1.5rem, 6vw, 4.5rem);
-    padding-left: max(16px, env(safe-area-inset-left, 0px));
-    padding-right: max(16px, env(safe-area-inset-right, 0px));
-  }
-  .wrap {
-    max-width: 64rem;
-    margin-inline: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1.75rem;
-  }
-  h1 {
-    margin: 0;
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: clamp(2.2rem, 8vw, 4rem);
-    line-height: 1;
-    letter-spacing: -0.04em;
-    text-wrap: balance;
-  }
-  h1 .hl {
-    text-decoration: underline;
-    text-decoration-color: var(--mark-bg);
-    text-decoration-thickness: 0.13em;
-    text-decoration-skip-ink: none;
-    text-underline-offset: 0.07em;
-  }
-
-  .grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "field" "go" "out";
-    gap: 1.25rem;
-  }
-  .field { grid-area: field; display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
-  .go { grid-area: go; }
-  .recv { grid-area: out; }
-
-  label {
-    font-size: 0.92rem;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    line-height: 1.4;
-    color: var(--muted);
-  }
-
-  .bubble { position: relative; min-width: 0; }
-  .sent {
-    flex: 1;
-    background: var(--sent);
-    color: var(--sent-fg);
-    border-radius: 1.6rem 1.6rem 0.4rem 1.6rem;
-    box-shadow: var(--shadow);
-    transition: box-shadow 0.15s;
-  }
-  .sent:focus-within { box-shadow: 0 0 0 4px var(--ring); }
-  .recv {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 1.6rem 1.6rem 1.6rem 0.4rem;
-    box-shadow: var(--shadow);
-  }
-
-  textarea {
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
-    min-height: 6.5rem;
-    margin: 0;
-    padding: 1.2rem 3.5rem 1.2rem 1.4rem;
-    border: 0;
-    outline: none;
-    resize: none;
-    background: transparent;
-    color: inherit;
-    caret-color: currentColor;
-    font: inherit;
-    font-size: 1.25rem;
-    line-height: 1.45;
-  }
-  textarea::placeholder {
-    color: var(--sent-ph);
-    opacity: 1;
-    transition: opacity 0.18s;
-  }
-  textarea.swapping::placeholder { opacity: 0; }
-
-  .out {
-    box-sizing: border-box;
-    min-height: 6.5rem;
-    padding: 1.2rem 3.5rem 1.2rem 1.4rem;
-    font-size: 1.25rem;
-    line-height: 1.45;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-    transition: opacity 0.18s;
-  }
-  .out.swapping { opacity: 0; }
-  .out.is-ph { color: var(--ph); }
-  .swap {
-    text-decoration: underline dotted var(--sent);
-    text-decoration-thickness: 1.5px;
-    text-underline-offset: 0.25em;
-  }
-  mark.unk {
-    background: var(--mark-bg);
-    color: var(--mark-fg);
-    padding: 0 0.3em;
-    border-radius: 0.3em;
-    font-weight: 600;
-  }
-
-  .arrow {
-    display: none;
-    position: absolute;
-    z-index: 1;
-    top: 50%;
-    left: calc(var(--gap) / -2 - 1.25rem);
-    width: 2.5rem;
-    height: 2.5rem;
-    margin-top: -1.25rem;
-    place-items: center;
-    border-radius: 50%;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    color: var(--sent);
-    box-shadow: var(--shadow);
-  }
-  .arrow svg {
-    width: 1.15rem;
-    height: 1.15rem;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  .icon-btn {
-    position: absolute;
-    top: 0.65rem;
-    right: 0.65rem;
-    width: 2.5rem;
-    height: 2.5rem;
-    display: grid;
-    place-items: center;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: background 0.15s, opacity 0.15s;
-  }
-  .icon-btn svg {
-    width: 1.1rem;
-    height: 1.1rem;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.7;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-  .sent .icon-btn { background: rgba(255, 255, 255, 0.18); color: var(--sent-fg); }
-  .sent .icon-btn:hover { background: rgba(255, 255, 255, 0.32); }
-  .sent .icon-btn:focus-visible { outline: 3px solid var(--sent-fg); outline-offset: 2px; }
-  .recv .icon-btn { background: var(--chip); color: var(--ink); }
-  .recv .icon-btn:hover:not(:disabled) { background: var(--line); }
-  .recv .icon-btn:focus-visible { outline: 3px solid var(--sent); outline-offset: 2px; }
-  .icon-btn:disabled { opacity: 0.35; cursor: default; }
-  .i-check { display: none; }
-  .icon-btn.done .i-copy { display: none; }
-  .icon-btn.done .i-check { display: block; }
-
-  .go {
-    justify-self: stretch;
-    min-height: 3.1rem;
-    padding: 0 2rem;
-    border: 0;
-    border-radius: 999px;
-    background: var(--btn-bg);
-    color: var(--btn-fg);
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 1.1rem;
-    letter-spacing: -0.01em;
-    cursor: pointer;
-    transition: transform 0.12s, box-shadow 0.12s;
-  }
-  .go:hover { transform: translateY(-1px); box-shadow: 0 10px 20px -12px rgba(0, 0, 0, 0.55); }
-  .go:active { transform: translateY(1px); box-shadow: none; }
-  .go:focus-visible { outline: 3px solid var(--sent); outline-offset: 3px; }
-
-  @media (min-width: 52rem) {
-    .grid {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      grid-template-areas: "field out" "go .";
-      column-gap: var(--gap);
-      row-gap: 1.5rem;
-    }
-    .go { justify-self: start; }
-    .recv { margin-top: var(--label-h); }
-    .arrow { display: grid; }
-    textarea, .out { min-height: 9.5rem; font-size: 1.35rem; }
-  }
-  @media (max-width: 480px) {
-    textarea, .out { font-size: 1.15rem; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    * { transition: none !important; }
-  }
-</style>
-
-<main class="wrap">
-  <h1>Text <span class="hl">Slang</span> Translator</h1>
-
-  <div class="grid">
-    <div class="field">
-      <label for="input">Paste text here:</label>
-      <div class="bubble sent" id="sentBubble">
-        <textarea id="input" rows="3" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
-        <button class="icon-btn" id="clear" type="button" aria-label="Clear" hidden>
-          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <button class="go" id="go" type="button">Translate</button>
-
-    <div class="bubble recv">
-      <span class="arrow" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
-      <div class="out is-ph" id="output" role="region" aria-label="Translation" aria-live="polite"></div>
-      <button class="icon-btn" id="copy" type="button" aria-label="Copy translation" disabled>
-        <svg class="i-copy" viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 5.5v-1a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h1"/></svg>
-        <svg class="i-check" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg>
-      </button>
-    </div>
-  </div>
-</main>
-
-<script>
-(function () {
-  'use strict';
-
-  /* ---------- Dictionary ---------- */
-  var D = Object.create(null);
-  function add(keys, t, o) {
-    keys.split(' ').forEach(function (k) {
-      D[k] = { t: t, c: (o && o.c) || null, standalone: !!(o && o.standalone), notTime: !!(o && o.notTime) };
-    });
-  }
-
-  // Laughter and reactions
-  add('lol', 'laughing out loud');
-  add('lmao', 'laughing my a** off');
-  add('lmfao', 'laughing my f***ing a** off');
-  add('rofl rotfl fotfl fofl', 'rolling on the floor laughing');
-  add('roflmao', 'rolling on the floor laughing my a** off');
-  add('csl', "can't stop laughing");
-  add('xd', 'laughing');
-  add('omg', 'oh my god');
-  add('omfg', 'oh my f***ing god');
-  add('zomg', 'oh my god');
-  add('oml', 'oh my lord');
-  add('wtf', 'what the f***');
-  add('wth', 'what the heck');
-  add('wtaf', 'what the actual f***');
-  add('ffs', "for f***'s sake");
-  add('stfu', 'shut the f*** up');
-  add('gtfo', 'get the f*** out');
-  add('jfc', 'Jesus f***ing Christ');
-  add('fml', 'f*** my life');
-  add('smh', 'shaking my head');
-  add('smdh', 'shaking my damn head');
-  add('smfh', 'shaking my f***ing head');
-  add('idgaf', "I don't give a f***");
-  add('bs', 'bulls***');
-  add('af asf', 'as f***', { c: 'lower' });
-  add('pita', 'pain in the a**');
-  add('orly', 'oh really');
-  add('oic', 'oh, I see');
-  add('kys', 'kill yourself');
-  add('kms', 'kill myself');
-
-  // Chat basics
-  add('brb', 'be right back');
-  add('btw', 'by the way');
-  add('idk', "I don't know");
-  add('dk', "don't know");
-  add('idc', "I don't care");
-  add('idrc', "I don't really care");
-  add('idrk', "I don't really know");
-  add('idek', "I don't even know");
-  add('idts', "I don't think so");
-  add('idr', "I don't remember");
-  add('idm', "I don't mind");
-  add('ik', 'I know');
-  add('ikr', 'I know, right');
-  add('imo', 'in my opinion');
-  add('imho', 'in my humble opinion');
-  add('tbh', 'to be honest');
-  add('tbqh', 'to be quite honest');
-  add('tbf', 'to be fair');
-  add('ngl', 'not gonna lie');
-  add('fyi', 'for your information');
-  add('ttyl', 'talk to you later');
-  add('ttyt', 'talk to you tomorrow');
-  add('ttys', 'talk to you soon');
-  add('ttfn', 'ta-ta for now');
-  add('gtg g2g', 'got to go');
-  add('gtgb', 'got to go, bye');
-  add('b4n', 'bye for now');
-  add('cya cu', 'see you');
-  add('cul8r syl', 'see you later');
-  add('cwyl', 'chat with you later');
-  add('bbl', 'be back later');
-  add('bbs', 'be back soon');
-  add('bbiab', 'be back in a bit');
-  add('brt', 'be right there');
-  add('wb', 'welcome back');
-  add('gn gnite gnight', 'good night');
-  add('gm', 'good morning');
-  add('hagd', 'have a great day');
-  add('tc', 'take care');
-  add('hbd', 'happy birthday');
-  add('xmas', 'Christmas');
-  add('tgif', "thank god it's Friday");
-  add('nvm', 'never mind');
-  add('asap', 'as soon as possible');
-  add('tmi', 'too much information');
-  add('icymi', 'in case you missed it');
-  add('irl', 'in real life');
-  add('afk', 'away from keyboard');
-  add('dm', 'direct message');
-  add('dms', 'direct messages');
-  add('pm', 'private message', { notTime: true });
-  add('ootd', 'outfit of the day');
-  add('fomo', 'fear of missing out');
-  add('yolo', 'you only live once');
-  add('iykyk', 'if you know, you know');
-  add('jsyk', 'just so you know');
-  add('ftr', 'for the record');
-  add('fwiw', "for what it's worth");
-  add('iirc', 'if I recall correctly');
-  add('iiuc', 'if I understand correctly');
-  add('afaik', 'as far as I know');
-  add('afaict', 'as far as I can tell');
-  add('otoh', 'on the other hand');
-  add('iow', 'in other words');
-  add('aka', 'also known as');
-  add('ymmv', 'your mileage may vary');
-  add('ianal', 'I am not a lawyer');
-  add('hth', 'hope this helps');
-  add('ftfy', 'fixed that for you');
-  add('mrw', 'my reaction when');
-  add('btdt', 'been there, done that');
-  add('bif', 'before I forget');
-  add('j2lyk', 'just to let you know');
-  add('mtf', 'more to follow');
-  add('g4i', 'go for it');
-  add('n1', 'nice one');
-  add('prw', 'parents are watching');
-  add('asl', 'age, sex, location (or as hell)');
-
-  // Replies and reactions
-  add('ok', 'okay');
-  add('k kk', 'okay');
-  add('np', 'no problem');
-  add('nbd', 'no big deal');
-  add('nw', 'no worries');
-  add('dw', "don't worry");
-  add('mb', 'my bad', { notTime: true });
-  add('nm', 'nothing much', { notTime: true });
-  add('nty', 'no thank you');
-  add('sok', "it's okay");
-  add('ty', 'thank you');
-  add('tq 10q', 'thank you');
-  add('tysm', 'thank you so much');
-  add('tyvm', 'thank you very much');
-  add('thx thnx tks tnx thks thnks', 'thanks');
-  add('yw', "you're welcome");
-  add('sry srry soz', 'sorry');
-  add('jk', 'just kidding');
-  add('ofc', 'of course');
-  add('obv obvs obvi', 'obviously');
-  add('srsly', 'seriously');
-  add('defo', 'definitely');
-  add('totes', 'totally');
-  add('probs', 'probably');
-  add('alr aight ight', 'alright');
-  add('yh', 'yeah');
-  add('nvr', 'never');
-  add('ig', 'I guess', { c: 'lower' });
-  add('yk', 'you know');
-  add('ykwim', 'you know what I mean');
-  add('ikwym', 'I know what you mean');
-  add('iykwim', 'if you know what I mean');
-  add('ily', 'I love you');
-  add('ilu', 'I love you');
-  add('ilysm', 'I love you so much');
-  add('xoxo xo', 'hugs and kisses');
-  add('xx xxx', 'kisses');
-  add('hmu', 'hit me up');
-  add('lmk', 'let me know');
-  add('otw omw', 'on my way');
-  add('wyd', 'what are you doing');
-  add('wya', 'where you at');
-  add('wru', 'where are you');
-  add('hru', 'how are you');
-  add('hyd', 'how you doing');
-  add('wbu', 'what about you');
-  add('hbu', 'how about you');
-  add('wdym', 'what do you mean');
-  add('wtv', 'whatever');
-  add('smth', 'something');
-  add('rn', 'right now');
-  add('tfw', 'that feeling when');
-  add('mfw', 'my face when');
-  add('istg', 'I swear to god');
-
-  // Slang and social media
-  add('fr', 'for real');
-  add('frfr', 'for real, for real');
-  add('ong', 'on god (I swear)');
-  add('bet', 'okay, sounds good', { standalone: true });
-  add('goat', 'greatest of all time', { c: 'upper' });
-  add('fyp', 'for you page');
-  add('pov', 'point of view');
-  add('tbt', 'throwback Thursday');
-  add('wcw', 'woman crush Wednesday');
-  add('mcm', 'man crush Monday');
-  add('bff', 'best friends forever');
-  add('bffs', 'best friends forever');
-  add('bae', 'before anyone else');
-  add('bf', 'boyfriend (or best friend)');
-  add('gf', 'girlfriend');
-  add('fwb', 'friends with benefits');
-  add('ltr', 'long-term relationship');
-  add('eli5', "explain like I'm five");
-  add('tl;dr tldr', "too long; didn't read");
-  add('ama', 'ask me anything');
-  add('op', 'original poster (or overpowered)', { c: 'upper' });
-  add('sus', 'suspicious');
-  add('rip', 'rest in peace', { c: 'upper' });
-  add('til', 'today I learned', { c: 'upper' });
-  add('nsfw', 'not safe for work');
-  add('sfw', 'safe for work');
-  add('tw', 'trigger warning');
-  add('cw', 'content warning');
-  add('rt', 'retweet');
-  add('atm', 'at the moment', { c: 'lower' });
-
-  // Gaming
-  add('gg', 'good game');
-  add('ggs', 'good games');
-  add('ggez', 'good game, easy');
-  add('ggwp', 'good game, well played');
-  add('glhf', 'good luck, have fun');
-  add('gl', 'good luck');
-  add('hf', 'have fun');
-  add('wp', 'well played');
-  add('gj', 'good job');
-  add('gz grats gratz', 'congratulations');
-  add('ez', 'easy');
-  add('pwned', 'dominated');
-  add('npc', 'non-player character');
-  add('xp', 'experience points');
-  add('pvp', 'player versus player');
-  add('pve', 'player versus environment');
-  add('rng', 'random number generator (luck)');
-  add('lfg', 'looking for group');
-  add('lfm', 'looking for more');
-  add('nerf', 'weaken');
-  add('buff', 'strengthen', { c: 'upper' });
-  add('kd', 'kill/death ratio');
-  add('kda', 'kills, deaths, assists');
-  add('fps', 'frames per second (or first-person shooter)');
-  add('hp', 'health points (or horsepower)');
-  add('dps', 'damage per second');
-  add('dlc', 'downloadable content');
-  add('rpg', 'role-playing game');
-  add('mmo', 'massively multiplayer online game');
-  add('mmorpg', 'massively multiplayer online role-playing game');
-
-  // Work and school
-  add('eod', 'end of day');
-  add('eow', 'end of week');
-  add('eom', 'end of month');
-  add('eoy', 'end of year');
-  add('nrn', 'no reply necessary');
-  add('ooo', 'out of office', { c: 'upper' });
-  add('wfh', 'work from home');
-  add('ftw', 'for the win');
-  add('tbd', 'to be determined');
-  add('tbc', 'to be confirmed');
-  add('tba', 'to be announced');
-  add('eta', 'estimated time of arrival');
-  add('rsvp', 'please respond');
-  add('faq', 'frequently asked questions');
-  add('diy', 'do it yourself');
-  add('pto', 'paid time off');
-  add('wip', 'work in progress');
-  add('mtg', 'meeting');
-  add('appt', 'appointment');
-  add('pfa', 'please find attached');
-  add('rgds', 'regards');
-  add('fwd', 'forwarded');
-  add('poc', 'point of contact');
-  add('hw', 'homework');
-
-  // Shortened words and spellings
-  add('u', 'you', { c: 'lower' });
-  add('r', 'are', { c: 'lower' });
-  add('ur', 'your');
-  add('pls plz', 'please');
-  add('bc bcoz bcuz bcz coz cuz', 'because', { c: 'lower' });
-  add('tho', 'though');
-  add('thru', 'through');
-  add('abt', 'about');
-  add('ppl', 'people');
-  add('msg', 'message');
-  add('txt', 'text');
-  add('pic', 'picture');
-  add('pics', 'pictures');
-  add('vid', 'video');
-  add('vids', 'videos');
-  add('fav fave', 'favorite');
-  add('convo', 'conversation');
-  add('bday', 'birthday');
-  add('rly', 'really');
-  add('lil', 'little');
-  add('nite', 'night');
-  add('tonite 2nite', 'tonight');
-  add('2day', 'today');
-  add('tmrw tmr 2moro 2morrow 2mrw', 'tomorrow');
-  add('yday', 'yesterday');
-  add('wknd', 'weekend');
-  add('esp', 'especially', { c: 'lower' });
-  add('gr8', 'great');
-  add('l8r', 'later');
-  add('b4', 'before');
-  add('m8', 'mate');
-  add('w8', 'wait');
-  add('h8', 'hate');
-  add('4ever', 'forever');
-  add('2g2bt', 'too good to be true');
-  add('a3', 'anytime, anywhere, anyplace');
-  add('adbb', 'all done, bye bye');
-  add('dnbl8', "don't be late");
-  add('gab', 'getting a beer');
-  add('sup wassup wazzup whaddup wsup', "what's up");
-  add('prolly', 'probably');
-  add('gonna', 'going to');
-  add('wanna', 'want to');
-  add('gotta', 'got to');
-  add('kinda', 'kind of');
-  add('sorta', 'sort of');
-  add('outta', 'out of');
-  add('lotta', 'lot of');
-  add('dunno', "don't know");
-  add('lemme', 'let me');
-  add('gimme', 'give me');
-  add('gotcha', 'got you');
-  add('whatcha', 'what are you');
-  add("c'mon cmon", 'come on');
-  add('ima imma', "I'm going to");
-  add('tryna', 'trying to');
-  add('finna boutta bouta', 'about to');
-  add('coulda', 'could have');
-  add('shoulda', 'should have');
-  add('woulda', 'would have');
-
-  var SLASH = Object.create(null);
-  SLASH['w/'] = 'with';
-  SLASH['w/o'] = 'without';
-  SLASH['b/c'] = 'because';
-  SLASH['n/a'] = 'not applicable';
-
-  var EMO = Object.create(null);
-  EMO['<3'] = '(heart)';
-  EMO['</3'] = '(broken heart)';
-  EMO['^_^'] = '(happy)';
-  EMO['-_-'] = '(annoyed)';
-  EMO[':)'] = '(smiling)';
-  EMO[':('] = '(sad)';
-  EMO[':d'] = '(grinning)';
-  EMO[':p'] = '(playful, tongue out)';
-  EMO[';)'] = '(winking)';
-  EMO[':/'] = '(unsure)';
-  EMO[':|'] = '(neutral)';
-  EMO[':o'] = '(surprised)';
-
-  var TONES = {
-    s: '(sarcastic)', j: '(joking)', srs: '(serious)', hj: '(half joking)', gen: '(genuine)',
-    pos: '(positive tone)', neg: '(negative tone)', lh: '(lighthearted)', t: '(teasing)'
-  };
-
-  // Words with no real vowels that should never become "???"
-  var NOVOWEL_OK = /^(h+m+|m+|sh+|ps+t|br+|pf+t|tsk|nth|zz+|gr+|mhm|mr|mrs|ms|dr|st|nd|rd|th|pm|vs|jr|sr|hr|hrs|wk|wks|yr|yrs|mo|mph|kph|bpm|cm|mm|km|kg|lb|lbs|oz|ml|mg|ft|tbsp|tsp|ctrl|pts|gb|kb|tb|hz|mhz|ghz|kwh|my|by|why|try|cry|dry|fly|fry|shy|sky|sly|spy|pry|wry|thy|gym|myth|lynx|hymn|sync|rhythm|nymph|crypt|gypsy|www|http|https|html|css|tv|pc|cd|dvd|usb|gps|cpu|gpu|pdf|sql|ppt)$/;
-
-  var RE = /https?:\/\/\S+|www\.\S+|\S+@\S+\.\S+|(?<!\S)(?:<3|<\/3|\^_\^|-_-|:\)|:\(|:D|:P|:O|:\||:\/|;\))(?!\S)|(?<![\w\/])(?:w\/o|b\/c|n\/a)(?![\w\/])|(?<![\w\/])w\/(?!\/)|(?<![\w\/])\/(?:srs|hj|gen|pos|neg|lh|s|j|t)(?![\w\/])|(?<!\S)\^+(?!\S)|tl;dr|[a-z0-9]+(?:['’][a-z]+)*/gi;
-
-  function find(tok) {
-    var lower = tok.toLowerCase().replace(/’/g, "'");
-    var e = D[lower];
-    if (!e && lower.length >= 3) {
-      e = D[lower.replace(/(.)\1{2,}/g, '$1')] || D[lower.replace(/(.)\1+/g, '$1')];
-    }
-    if (!e) return null;
-    if (e.c === 'upper' && !(tok === tok.toUpperCase() && tok.length >= 2)) return null;
-    if (e.c === 'lower' && tok !== tok.toLowerCase()) return null;
-    return e;
-  }
-
-  function allCaps(tok) {
-    return tok.length > 1 && tok === tok.toUpperCase() && /[A-Z]/.test(tok);
-  }
-
-  function isShout(text) {
-    var w = text.match(/\b[A-Za-z]{2,}\b/g) || [];
-    if (w.length < 3) return false;
-    var up = w.filter(function (x) { return x === x.toUpperCase(); }).length;
-    return up / w.length >= 0.6;
-  }
-
-  function isUnknown(tok) {
-    if (!/^[A-Za-z]+$/.test(tok) || tok.length < 2) return false;
-    var l = tok.toLowerCase();
-    if (tok !== l && tok !== tok.toUpperCase()) return false;
-    if (/[aeiou]/.test(l)) return false;
-    return !NOVOWEL_OK.test(l);
-  }
-
-  function translate(text) {
-    var parts = [], last = 0, m;
-    var shout = isShout(text);
-    var re = new RegExp(RE.source, 'gi');
-    while ((m = re.exec(text)) !== null) {
-      var tok = m[0], i = m.index, low = tok.toLowerCase();
-      var before = text.slice(0, i), after = text.slice(i + tok.length);
-      var rep = null, unk = false;
-      if (/^(https?:|www\.)/i.test(tok) || tok.indexOf('@') > -1) continue;
-      if (EMO[low]) {
-        rep = EMO[low];
-      } else if (SLASH[low]) {
-        rep = SLASH[low];
-      } else if (tok.charAt(0) === '/') {
-        rep = TONES[tok.slice(1).toLowerCase()] || null;
-      } else if (tok.charAt(0) === '^') {
-        rep = '(the message above)';
-      } else {
-        var hit = find(tok), e = hit;
-        if (e && e.notTime && /\d\s*$/.test(before)) e = null;
-        if (e && e.standalone && !(/(^|[.!?,;\n])\s*$/.test(before) && /^\s*([.!?,;\n]|$)/.test(after))) e = null;
-        if (e) {
-          rep = e.t;
-          if (shout && allCaps(tok)) rep = rep.toUpperCase();
-          else if (/(^|[.!?\n])\s*$/.test(before)) rep = rep.charAt(0).toUpperCase() + rep.slice(1);
-        } else if (!hit && isUnknown(tok)) {
-          unk = true;
-        }
-      }
-      if (rep === null && !unk) continue;
-      if (i > last) parts.push({ t: text.slice(last, i) });
-      parts.push(unk ? { t: '???', from: tok, unk: true } : { t: rep, from: tok });
-      last = i + tok.length;
-    }
-    if (last < text.length) parts.push({ t: text.slice(last) });
-    return parts;
-  }
-
-  function plain(parts) {
-    return parts.map(function (p) { return p.t; }).join('');
-  }
-
-  if (typeof document === 'undefined') {
-    globalThis.__api = { translate: translate, plain: plain, dict: D };
-    return;
-  }
-
-  /* ---------- UI ---------- */
-  var EX = [
-    "omg imo that's sus fr",
-    'idk what to do rn tbh',
-    'brb gtg ttyl lol',
-    'wyd tonight? lmk if u r free',
-    'np btw, hmu tmrw ofc',
-    'ikr smh that was tmi',
-    'gg wp glhf next time',
-    'ngl idc fr fr'
-  ];
-  var EXT = EX.map(function (s) { return plain(translate(s)); });
-
-  var ta = document.getElementById('input');
-  var sentBubble = document.getElementById('sentBubble');
-  var out = document.getElementById('output');
-  var go = document.getElementById('go');
-  var clearBtn = document.getElementById('clear');
-  var copyBtn = document.getElementById('copy');
-  var idx = 0, hasResult = false, lastPlain = '', copyTimer = null;
-  var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-
-  function fit() {
-    ta.style.height = 'auto';
-    ta.style.height = Math.min(ta.scrollHeight, 360) + 'px';
-  }
-  function syncClear() { clearBtn.hidden = !ta.value; }
-
-  function renderIdle() {
-    out.className = 'out is-ph';
-    out.textContent = EXT[idx];
-    out.setAttribute('aria-hidden', 'true');
-    copyBtn.disabled = true;
-  }
-  function renderResult(parts) {
-    out.className = 'out';
-    out.removeAttribute('aria-hidden');
-    out.textContent = '';
-    parts.forEach(function (p) {
-      if (p.unk) {
-        var mk = document.createElement('mark');
-        mk.className = 'unk';
-        mk.title = p.from;
-        mk.textContent = p.t;
-        out.appendChild(mk);
-      } else if (p.from) {
-        var sp = document.createElement('span');
-        sp.className = 'swap';
-        sp.title = p.from;
-        sp.textContent = p.t;
-        out.appendChild(sp);
-      } else {
-        out.appendChild(document.createTextNode(p.t));
-      }
-    });
-    lastPlain = plain(parts);
-    copyBtn.disabled = false;
-  }
-
-  function showExample(n) {
-    idx = n;
-    ta.classList.add('swapping');
-    out.classList.add('swapping');
-    setTimeout(function () {
-      ta.placeholder = EX[idx];
-      ta.classList.remove('swapping');
-      if (!hasResult) renderIdle(); else out.classList.remove('swapping');
-    }, reduce ? 0 : 180);
-  }
-
-  go.addEventListener('click', function () {
-    var v = ta.value;
-    if (!v.trim()) { ta.focus(); return; }
-    hasResult = true;
-    renderResult(translate(v));
-  });
-
-  clearBtn.addEventListener('click', function () {
-    ta.value = '';
-    hasResult = false;
-    renderIdle();
-    syncClear();
-    fit();
-    ta.focus();
-  });
-
-  sentBubble.addEventListener('mousedown', function (e) {
-    if (e.target === sentBubble) { e.preventDefault(); ta.focus(); }
   });
 
   ta.addEventListener('input', function () {
