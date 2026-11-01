@@ -1,0 +1,1 @@
+This is a small personal project that translates all those annoyingly obscure abbreviations that are used in text chats. It was vibe coded with Claude, so don't expect perfection or regular updates. Enjoy :D
