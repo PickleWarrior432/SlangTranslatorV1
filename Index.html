@@ -1,0 +1,621 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Text Slang Translator</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Instrument+Sans:wght@400..600&display=swap">
+<style>
+  /* Layout: one column, a sent bubble (input, accent blue) answered by a received bubble (output, plain surface), joined by a single Translate button. */
+  :root {
+    --bg: #E8EDF2;
+    --surface: #FFFFFF;
+    --ink: #101A24;
+    --muted: #5F6C78;
+    --ph: #6B7885;
+    --line: #CFD8E1;
+    --chip: #EDF1F5;
+    --sent: #3347D8;
+    --sent-fg: #FFFFFF;
+    --sent-ph: rgba(255, 255, 255, 0.78);
+    --btn-bg: #101A24;
+    --btn-fg: #FFFFFF;
+    --mark-bg: #FFD93D;
+    --mark-fg: #101A24;
+    --ring: rgba(51, 71, 216, 0.35);
+    --font-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+    --font-body: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0D131A;
+      --surface: #17202A;
+      --ink: #E9EFF5;
+      --muted: #9AA7B4;
+      --ph: #8C99A6;
+      --line: #2A3744;
+      --chip: #223040;
+      --sent: #4A5CEE;
+      --btn-bg: #E9EFF5;
+      --btn-fg: #0D131A;
+      --ring: rgba(140, 152, 255, 0.5);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0D131A;
+    --surface: #17202A;
+    --ink: #E9EFF5;
+    --muted: #9AA7B4;
+    --ph: #8C99A6;
+    --line: #2A3744;
+    --chip: #223040;
+    --sent: #4A5CEE;
+    --btn-bg: #E9EFF5;
+    --btn-fg: #0D131A;
+    --ring: rgba(140, 152, 255, 0.5);
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    padding-block: clamp(1.5rem, 6vw, 4rem);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .wrap {
+    max-width: 44rem;
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  h1 {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(2.1rem, 7.5vw, 3.5rem);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+  h1 .hl {
+    text-decoration: underline;
+    text-decoration-color: var(--mark-bg);
+    text-decoration-thickness: 0.13em;
+    text-decoration-skip-ink: none;
+    text-underline-offset: 0.07em;
+  }
+  .field { display: flex; flex-direction: column; gap: 0.5rem; }
+  label {
+    font-size: 0.92rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--muted);
+  }
+
+  .bubble { position: relative; min-width: 0; }
+  .sent {
+    background: var(--sent);
+    color: var(--sent-fg);
+    border-radius: 1.5rem 1.5rem 0.4rem 1.5rem;
+    transition: box-shadow 0.15s;
+  }
+  .sent:focus-within { box-shadow: 0 0 0 4px var(--ring); }
+  .recv {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 1.5rem 1.5rem 1.5rem 0.4rem;
+  }
+
+  textarea {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 6.25rem;
+    margin: 0;
+    padding: 1.15rem 3.5rem 1.15rem 1.3rem;
+    border: 0;
+    outline: none;
+    resize: none;
+    background: transparent;
+    color: inherit;
+    caret-color: currentColor;
+    font: inherit;
+    font-size: 1.25rem;
+    line-height: 1.45;
+  }
+  textarea::placeholder {
+    color: var(--sent-ph);
+    opacity: 1;
+    transition: opacity 0.18s;
+  }
+  textarea.swapping::placeholder { opacity: 0; }
+
+  .out {
+    box-sizing: border-box;
+    min-height: 6.25rem;
+    padding: 1.15rem 3.5rem 1.15rem 1.3rem;
+    font-size: 1.25rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    transition: opacity 0.18s;
+  }
+  .out.swapping { opacity: 0; }
+  .out.is-ph { color: var(--ph); }
+  .swap {
+    text-decoration: underline dotted var(--sent);
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 0.25em;
+  }
+  mark.unk {
+    background: var(--mark-bg);
+    color: var(--mark-fg);
+    padding: 0 0.3em;
+    border-radius: 0.3em;
+    font-weight: 600;
+  }
+
+  .icon-btn {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+  }
+  .icon-btn svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .sent .icon-btn { background: rgba(255, 255, 255, 0.18); color: var(--sent-fg); }
+  .sent .icon-btn:hover { background: rgba(255, 255, 255, 0.32); }
+  .sent .icon-btn:focus-visible { outline: 3px solid var(--sent-fg); outline-offset: 2px; }
+  .recv .icon-btn { background: var(--chip); color: var(--ink); }
+  .recv .icon-btn:hover:not(:disabled) { background: var(--line); }
+  .recv .icon-btn:focus-visible { outline: 3px solid var(--sent); outline-offset: 2px; }
+  .icon-btn:disabled { opacity: 0.35; cursor: default; }
+  .i-check { display: none; }
+  .icon-btn.done .i-copy { display: none; }
+  .icon-btn.done .i-check { display: block; }
+
+  .actions { display: flex; }
+  .go {
+    min-height: 3rem;
+    padding: 0 1.9rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: transform 0.1s, filter 0.15s;
+  }
+  .go:hover { filter: brightness(1.18); }
+  .go:active { transform: translateY(1px); }
+  .go:focus-visible { outline: 3px solid var(--sent); outline-offset: 3px; }
+
+  @media (max-width: 480px) {
+    .go { width: 100%; }
+    textarea, .out { font-size: 1.15rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+
+<main class="wrap">
+  <h1>Text <span class="hl">Slang</span> Translator</h1>
+
+  <div class="field">
+    <label for="input">Paste text here:</label>
+    <div class="bubble sent">
+      <textarea id="input" rows="3" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+      <button class="icon-btn" id="clear" type="button" aria-label="Clear" hidden>
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="go" id="go" type="button">Translate</button>
+  </div>
+
+  <div class="bubble recv">
+    <div class="out is-ph" id="output" role="region" aria-label="Translation" aria-live="polite"></div>
+    <button class="icon-btn" id="copy" type="button" aria-label="Copy translation" disabled>
+      <svg class="i-copy" viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 5.5v-1a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h1"/></svg>
+      <svg class="i-check" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg>
+    </button>
+  </div>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- Dictionary ---------- */
+  var D = Object.create(null);
+  function add(keys, t, o) {
+    keys.split(' ').forEach(function (k) {
+      D[k] = { t: t, c: (o && o.c) || null, standalone: !!(o && o.standalone), notTime: !!(o && o.notTime) };
+    });
+  }
+
+  // Everyday chat
+  add('lol', 'laughing out loud');
+  add('lmao', 'laughing my a** off');
+  add('lmfao', 'laughing my f***ing a** off');
+  add('rofl', 'rolling on the floor laughing');
+  add('brb', 'be right back');
+  add('btw', 'by the way');
+  add('idk', "I don't know");
+  add('idc', "I don't care");
+  add('imo', 'in my opinion');
+  add('imho', 'in my humble opinion');
+  add('tbh', 'to be honest');
+  add('ngl', 'not gonna lie');
+  add('fyi', 'for your information');
+  add('ikr', 'I know, right');
+  add('omg', 'oh my god');
+  add('smh', 'shaking my head');
+  add('ttyl', 'talk to you later');
+  add('gtg g2g', 'got to go');
+  add('nvm', 'never mind');
+  add('asap', 'as soon as possible');
+  add('tmi', 'too much information');
+  add('icymi', 'in case you missed it');
+  add('irl', 'in real life');
+  add('afk', 'away from keyboard');
+  add('dm', 'direct message');
+  add('pm', 'private message', { notTime: true });
+  add('ootd', 'outfit of the day');
+  add('fomo', 'fear of missing out');
+  add('yolo', 'you only live once');
+  add('iykyk', 'if you know, you know');
+
+  // Replies and reactions
+  add('k kk', 'okay');
+  add('np', 'no problem');
+  add('ty', 'thank you');
+  add('thx thnx', 'thanks');
+  add('yw', "you're welcome");
+  add('jk', 'just kidding');
+  add('ofc', 'of course');
+  add('ily', 'I love you');
+  add('idgaf', "I don't give a f***");
+  add('wtf', 'what the f***');
+  add('wyd', 'what are you doing');
+  add('hmu', 'hit me up');
+  add('lmk', 'let me know');
+  add('otw', 'on the way');
+  add('idrk', "I don't really know");
+  add('smth', 'something');
+  add('rn', 'right now');
+  add('tfw', 'that feeling when');
+  add('mfw', 'my face when');
+  add('istg', 'I swear to god');
+
+  // Slang and social media
+  add('fr', 'for real');
+  add('frfr', 'for real, for real');
+  add('ong', 'on god (I swear)');
+  add('bet', 'okay, sounds good', { standalone: true });
+  add('goat', 'greatest of all time', { c: 'upper' });
+  add('fyp', 'for you page');
+  add('pov', 'point of view');
+  add('tbt', 'throwback Thursday');
+  add('bff', 'best friends forever');
+  add('bae', 'before anyone else');
+  add('eli5', "explain like I'm five");
+  add('tl;dr tldr', "too long; didn't read");
+  add('ama', 'ask me anything');
+  add('op', 'original poster (or overpowered)', { c: 'upper' });
+  add('sus', 'suspicious');
+  add('rip', 'rest in peace', { c: 'upper' });
+  add('fwiw', "for what it's worth");
+  add('iirc', 'if I recall correctly');
+  add('afaik', 'as far as I know');
+  add('til', 'today I learned', { c: 'upper' });
+  add('nsfw', 'not safe for work');
+  add('sfw', 'safe for work');
+  add('atm', 'at the moment', { c: 'lower' });
+  add('xoxo', 'hugs and kisses');
+
+  // Gaming
+  add('gg', 'good game');
+  add('ggez', 'good game, easy');
+  add('glhf', 'good luck, have fun');
+  add('wp', 'well played');
+  add('npc', 'non-player character');
+  add('xp', 'experience points');
+  add('pvp', 'player versus player');
+  add('pve', 'player versus environment');
+  add('rng', 'random number generator (luck)');
+  add('lfg', 'looking for group');
+  add('nerf', 'weaken');
+  add('buff', 'strengthen', { c: 'upper' });
+
+  // Work and school
+  add('eod', 'end of day');
+  add('ooo', 'out of office', { c: 'upper' });
+  add('wfh', 'work from home');
+  add('ftw', 'for the win');
+  add('tbd', 'to be determined');
+  add('tba', 'to be announced');
+  add('eta', 'estimated time of arrival');
+  add('rsvp', 'please respond');
+  add('faq', 'frequently asked questions');
+  add('diy', 'do it yourself');
+  add('pto', 'paid time off');
+  add('wip', 'work in progress');
+  add('hw', 'homework');
+
+  // Other common shorthand
+  add('u', 'you', { c: 'lower' });
+  add('r', 'are', { c: 'lower' });
+  add('ur', 'your');
+  add('pls plz', 'please');
+  add('bc', 'because', { c: 'lower' });
+  add('cuz', 'because');
+  add('tho', 'though');
+  add('gr8', 'great');
+  add('l8r', 'later');
+  add('b4', 'before');
+  add('abt', 'about');
+  add('ppl', 'people');
+  add('msg', 'message');
+  add('tmrw tmr', 'tomorrow');
+  add('sry', 'sorry');
+  add('wbu', 'what about you');
+  add('hbu', 'how about you');
+  add('wdym', 'what do you mean');
+  add('omw', 'on my way');
+  add('nbd', 'no big deal');
+  add('bday', 'birthday');
+  add('convo', 'conversation');
+  add('fav', 'favorite');
+  add('rly', 'really');
+  add('ez', 'easy');
+  add('prolly', 'probably');
+  add('gonna', 'going to');
+  add('wanna', 'want to');
+  add('gotta', 'got to');
+  add('kinda', 'kind of');
+  add('dunno', "don't know");
+  add('lemme', 'let me');
+  add('gimme', 'give me');
+
+  var TONES = {
+    s: '(sarcastic)', j: '(joking)', srs: '(serious)', hj: '(half joking)', gen: '(genuine)',
+    pos: '(positive tone)', neg: '(negative tone)', lh: '(lighthearted)', t: '(teasing)'
+  };
+
+  // Words with no real vowels that should never become "???"
+  var NOVOWEL_OK = /^(h+m+|m+|sh+|ps+t|br+|pf+t|tsk|nth|zz+|gr+|mhm|xx+|mr|mrs|ms|dr|st|nd|rd|th|pm|vs|jr|sr|hr|hrs|wk|wks|yr|yrs|mo|mph|kph|bpm|cm|mm|km|kg|lb|lbs|oz|ml|mg|ft|tbsp|tsp|ctrl|pts|my|by|why|try|cry|dry|fly|fry|shy|sky|sly|spy|pry|wry|thy|gym|myth|lynx|hymn|sync|rhythm|nymph|crypt|gypsy|www|http|https|html|css|tv|pc|cd|dvd|usb|gps|cpu|gpu|pdf|sql|ppt)$/;
+
+  var RE = /https?:\/\/\S+|www\.\S+|\S+@\S+\.\S+|(?<![\w\/])\/(?:srs|hj|gen|pos|neg|lh|s|j|t)(?![\w\/])|(?<!\S)\^+(?!\S)|tl;dr|[a-z0-9]+(?:['’][a-z]+)*/gi;
+
+  function find(tok) {
+    var lower = tok.toLowerCase();
+    var e = D[lower];
+    if (!e && lower.length >= 3) {
+      e = D[lower.replace(/(.)\1{2,}/g, '$1')] || D[lower.replace(/(.)\1+/g, '$1')];
+    }
+    if (!e) return null;
+    if (e.c === 'upper' && !(tok === tok.toUpperCase() && tok.length >= 2)) return null;
+    if (e.c === 'lower' && tok !== lower) return null;
+    return e;
+  }
+
+  function allCaps(tok) {
+    return tok.length > 1 && tok === tok.toUpperCase() && /[A-Z]/.test(tok);
+  }
+
+  function isShout(text) {
+    var w = text.match(/\b[A-Za-z]{2,}\b/g) || [];
+    if (w.length < 3) return false;
+    var up = w.filter(function (x) { return x === x.toUpperCase(); }).length;
+    return up / w.length >= 0.6;
+  }
+
+  function isUnknown(tok) {
+    if (!/^[A-Za-z]+$/.test(tok) || tok.length < 2) return false;
+    var l = tok.toLowerCase();
+    if (tok !== l && tok !== tok.toUpperCase()) return false;
+    if (/[aeiou]/.test(l)) return false;
+    return !NOVOWEL_OK.test(l);
+  }
+
+  function translate(text) {
+    var parts = [], last = 0, m;
+    var shout = isShout(text);
+    var re = new RegExp(RE.source, 'gi');
+    while ((m = re.exec(text)) !== null) {
+      var tok = m[0], i = m.index;
+      var before = text.slice(0, i), after = text.slice(i + tok.length);
+      var rep = null, unk = false;
+      if (/^(https?:|www\.)/i.test(tok) || tok.indexOf('@') > -1) continue;
+      if (tok.charAt(0) === '/') {
+        rep = TONES[tok.slice(1).toLowerCase()] || null;
+      } else if (tok.charAt(0) === '^') {
+        rep = '(the message above)';
+      } else {
+        var e = find(tok);
+        if (e && e.notTime && /\d\s*$/.test(before)) e = null;
+        if (e && e.standalone && !(/(^|[.!?,;\n])\s*$/.test(before) && /^\s*([.!?,;\n]|$)/.test(after))) e = null;
+        if (e) {
+          rep = e.t;
+          if (shout && allCaps(tok)) rep = rep.toUpperCase();
+          else if (/(^|[.!?\n])\s*$/.test(before)) rep = rep.charAt(0).toUpperCase() + rep.slice(1);
+        } else if (isUnknown(tok)) {
+          unk = true;
+        }
+      }
+      if (rep === null && !unk) continue;
+      if (i > last) parts.push({ t: text.slice(last, i) });
+      parts.push(unk ? { t: '???', from: tok, unk: true } : { t: rep, from: tok });
+      last = i + tok.length;
+    }
+    if (last < text.length) parts.push({ t: text.slice(last) });
+    return parts;
+  }
+
+  function plain(parts) {
+    return parts.map(function (p) { return p.t; }).join('');
+  }
+
+  if (typeof document === 'undefined') {
+    globalThis.__api = { translate: translate, plain: plain };
+    return;
+  }
+
+  /* ---------- UI ---------- */
+  var EX = [
+    "omg imo that's sus fr",
+    'idk what to do rn tbh',
+    'brb gtg ttyl lol',
+    'wyd tonight? lmk if u r free',
+    'np btw, hmu tmrw ofc',
+    'ikr smh that was tmi',
+    'gg wp glhf next time',
+    'ngl idc fr fr'
+  ];
+  var EXT = EX.map(function (s) { return plain(translate(s)); });
+
+  var ta = document.getElementById('input');
+  var out = document.getElementById('output');
+  var go = document.getElementById('go');
+  var clearBtn = document.getElementById('clear');
+  var copyBtn = document.getElementById('copy');
+  var idx = 0, hasResult = false, lastPlain = '', copyTimer = null;
+  var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  function fit() {
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, 360) + 'px';
+  }
+  function syncClear() { clearBtn.hidden = !ta.value; }
+
+  function renderIdle() {
+    out.className = 'out is-ph';
+    out.textContent = EXT[idx];
+    out.setAttribute('aria-hidden', 'true');
+    copyBtn.disabled = true;
+  }
+  function renderResult(parts) {
+    out.className = 'out';
+    out.removeAttribute('aria-hidden');
+    out.textContent = '';
+    parts.forEach(function (p) {
+      if (p.unk) {
+        var mk = document.createElement('mark');
+        mk.className = 'unk';
+        mk.title = p.from;
+        mk.textContent = p.t;
+        out.appendChild(mk);
+      } else if (p.from) {
+        var sp = document.createElement('span');
+        sp.className = 'swap';
+        sp.title = p.from;
+        sp.textContent = p.t;
+        out.appendChild(sp);
+      } else {
+        out.appendChild(document.createTextNode(p.t));
+      }
+    });
+    lastPlain = plain(parts);
+    copyBtn.disabled = false;
+  }
+
+  function showExample(n) {
+    idx = n;
+    ta.classList.add('swapping');
+    out.classList.add('swapping');
+    setTimeout(function () {
+      ta.placeholder = EX[idx];
+      ta.classList.remove('swapping');
+      if (!hasResult) renderIdle(); else out.classList.remove('swapping');
+    }, reduce ? 0 : 180);
+  }
+
+  go.addEventListener('click', function () {
+    var v = ta.value;
+    if (!v.trim()) { ta.focus(); return; }
+    hasResult = true;
+    renderResult(translate(v));
+  });
+
+  clearBtn.addEventListener('click', function () {
+    ta.value = '';
+    hasResult = false;
+    renderIdle();
+    syncClear();
+    fit();
+    ta.focus();
+  });
+
+  ta.addEventListener('input', function () {
+    syncClear();
+    fit();
+    if (!ta.value.trim() && hasResult) { hasResult = false; renderIdle(); }
+  });
+  ta.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); go.click(); }
+  });
+
+  function flashDone() {
+    copyBtn.classList.add('done');
+    clearTimeout(copyTimer);
+    copyTimer = setTimeout(function () { copyBtn.classList.remove('done'); }, 1600);
+  }
+  function fallbackCopy() {
+    try {
+      var r = document.createRange();
+      r.selectNodeContents(out);
+      var s = window.getSelection();
+      s.removeAllRanges();
+      s.addRange(r);
+      if (document.execCommand && document.execCommand('copy')) flashDone();
+    } catch (err) { /* the text stays selected so it can be copied by hand */ }
+  }
+  copyBtn.addEventListener('click', function () {
+    if (copyBtn.disabled) return;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(lastPlain).then(flashDone, fallbackCopy);
+      } else {
+        fallbackCopy();
+      }
+    } catch (err) { fallbackCopy(); }
+  });
+
+  setInterval(function () {
+    if (reduce || document.hidden || hasResult || ta.value || document.activeElement === ta) return;
+    showExample((idx + 1) % EX.length);
+  }, 5000);
+
+  ta.placeholder = EX[0];
+  renderIdle();
+  syncClear();
+  fit();
+})();
+</script>
+
+</body></html>
