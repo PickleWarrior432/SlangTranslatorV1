@@ -2,492 +2,951 @@
 <title>Text Slang Translator</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Instrument+Sans:wght@400..600&display=swap">
+
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+
 <style>
-  /* Layout: one column, a sent bubble (input, accent blue) answered by a received bubble (output, plain surface), joined by a single Translate button. */
+  /* ==========================================================================
+     Layout: one chat window (header, scrolling thread, composer) centred on the
+     page. Three vertical tabs sit on the right edge and slide drawers in.
+     Colours come from the tokens below. The settings drawer can swap them for
+     light, dark, or colours the user picks.
+     ========================================================================== */
+
+  /* ---- Tokens: light (the default) ---- */
   :root {
-    --bg: #E8EDF2;
-    --surface: #FFFFFF;
-    --ink: #101A24;
-    --muted: #5F6C78;
-    --ph: #6B7885;
-    --line: #CFD8E1;
-    --chip: #EDF1F5;
-    --sent: #3347D8;
+    --bg: #DFE8E4;
+    --chat: #EEF3F0;
+    --bar: #FBFDFC;
+    --bar-fg: #0F1D1A;
+    --bar-line: #CBD8D2;
+    --ink: #0F1D1A;
+    --muted: #55655F;
+    --line: #CBD8D2;
+    --surface: #FBFDFC;
+    --chip: #E4EDE9;
+
+    --sent-bg: #0B7A6B;
     --sent-fg: #FFFFFF;
-    --sent-ph: rgba(255, 255, 255, 0.78);
-    --btn-bg: #101A24;
-    --btn-fg: #FFFFFF;
+    --recv-bg: #FFFFFF;
+    --recv-fg: #0F1D1A;
+    --recv-line: #CBD8D2;
+    --stamp-sent: rgba(255, 255, 255, 0.78);
+    --stamp-recv: #66766F;
+
+    --field-bg: #FFFFFF;
+    --field-fg: #0F1D1A;
+    --field-line: #CBD8D2;
+    --field-ph: #66766F;
+    --send-bg: #0F1D1A;
+    --send-fg: #FFFFFF;
+
+    --accent: #0B7A6B;
+    --ring: rgba(11, 122, 107, 0.35);
     --mark-bg: #FFD93D;
     --mark-fg: #101A24;
-    --ring: rgba(51, 71, 216, 0.35);
+    --hl: #FFD93D;
+
+    --r-sent: 1.4rem 1.4rem 0.4rem 1.4rem;
+    --r-recv: 1.4rem 1.4rem 1.4rem 0.4rem;
+    --r-field: 1.5rem;
+    --r-send: 999px;
+    --r-window: 1.1rem;
+    --shadow-window: 0 30px 60px -40px rgba(15, 29, 26, 0.5);
+    --msg-max: 78%;
+
     --font-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
     --font-body: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   }
+
+  /* ---- Tokens: dark. Used for a dark system setting, a dark host theme, or the "dark" button. ---- */
   @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #0D131A;
-      --surface: #17202A;
-      --ink: #E9EFF5;
-      --muted: #9AA7B4;
-      --ph: #8C99A6;
-      --line: #2A3744;
-      --chip: #223040;
-      --sent: #4A5CEE;
-      --btn-bg: #E9EFF5;
-      --btn-fg: #0D131A;
-      --ring: rgba(140, 152, 255, 0.5);
+    :root:not([data-theme="light"]):not([data-appearance]) {
+      --bg: #070D0B;
+      --chat: #0B1311;
+      --bar: #14201D;
+      --bar-fg: #E7F0EC;
+      --bar-line: #26352F;
+      --ink: #E7F0EC;
+      --muted: #94A59E;
+      --line: #26352F;
+      --surface: #14201D;
+      --chip: #1F2D28;
+      --sent-bg: #0F8473;
+      --recv-bg: #14201D;
+      --recv-fg: #E7F0EC;
+      --recv-line: #26352F;
+      --stamp-recv: #94A59E;
+      --field-bg: #14201D;
+      --field-fg: #E7F0EC;
+      --field-line: #26352F;
+      --field-ph: #8A9B94;
+      --send-bg: #E7F0EC;
+      --send-fg: #0B1311;
+      --accent: #46C8B4;
+      --ring: rgba(70, 200, 180, 0.45);
+      --shadow-window: 0 30px 60px -40px rgba(0, 0, 0, 0.9);
       color-scheme: dark;
     }
   }
-  :root[data-theme="dark"] {
-    --bg: #0D131A;
-    --surface: #17202A;
-    --ink: #E9EFF5;
-    --muted: #9AA7B4;
-    --ph: #8C99A6;
-    --line: #2A3744;
-    --chip: #223040;
-    --sent: #4A5CEE;
-    --btn-bg: #E9EFF5;
-    --btn-fg: #0D131A;
-    --ring: rgba(140, 152, 255, 0.5);
+  :root[data-theme="dark"]:not([data-appearance]),
+  :root[data-appearance="dark"] {
+    --bg: #070D0B;
+    --chat: #0B1311;
+    --bar: #14201D;
+    --bar-fg: #E7F0EC;
+    --bar-line: #26352F;
+    --ink: #E7F0EC;
+    --muted: #94A59E;
+    --line: #26352F;
+    --surface: #14201D;
+    --chip: #1F2D28;
+    --sent-bg: #0F8473;
+    --recv-bg: #14201D;
+    --recv-fg: #E7F0EC;
+    --recv-line: #26352F;
+    --stamp-recv: #94A59E;
+    --field-bg: #14201D;
+    --field-fg: #E7F0EC;
+    --field-line: #26352F;
+    --field-ph: #8A9B94;
+    --send-bg: #E7F0EC;
+    --send-fg: #0B1311;
+    --accent: #46C8B4;
+    --ring: rgba(70, 200, 180, 0.45);
+    --shadow-window: 0 30px 60px -40px rgba(0, 0, 0, 0.9);
     color-scheme: dark;
   }
 
+  /* ==========================================================================
+     Page and chat window
+     ========================================================================== */
+  html,
   body {
+    height: 100%;
+  }
+  html {
+    box-sizing: border-box;
+  }
+  body {
+    box-sizing: border-box;
     background: var(--bg);
     color: var(--ink);
     font-family: var(--font-body);
     font-size: 16px;
     line-height: 1.5;
-    padding-block: clamp(1.5rem, 6vw, 4rem);
+    padding-block: clamp(0rem, 3vh, 1.75rem);
     padding-left: max(16px, env(safe-area-inset-left, 0px));
     padding-right: max(16px, env(safe-area-inset-right, 0px));
   }
-  .wrap {
-    max-width: 44rem;
-    margin-inline: auto;
+  .app {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
-  }
-  h1 {
-    margin: 0 0 0.5rem;
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: clamp(2.1rem, 7.5vw, 3.5rem);
-    line-height: 1.02;
-    letter-spacing: -0.035em;
-    text-wrap: balance;
-  }
-  h1 .hl {
-    text-decoration: underline;
-    text-decoration-color: var(--mark-bg);
-    text-decoration-thickness: 0.13em;
-    text-decoration-skip-ink: none;
-    text-underline-offset: 0.07em;
-  }
-  .field { display: flex; flex-direction: column; gap: 0.5rem; }
-  label {
-    font-size: 0.92rem;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    color: var(--muted);
+    height: 100%;
+    max-width: 46rem;
+    margin-inline: auto;
+    overflow: hidden;
+    background: var(--chat);
+    border-radius: var(--r-window);
+    box-shadow: var(--shadow-window);
   }
 
-  .bubble { position: relative; min-width: 0; }
-  .sent {
-    background: var(--sent);
-    color: var(--sent-fg);
-    border-radius: 1.5rem 1.5rem 0.4rem 1.5rem;
-    transition: box-shadow 0.15s;
+  /* ---- Header ---- */
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.75rem 1rem;
+    background: var(--bar);
+    color: var(--bar-fg);
+    border-bottom: 1px solid var(--bar-line);
   }
-  .sent:focus-within { box-shadow: 0 0 0 4px var(--ring); }
-  .recv {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 1.5rem 1.5rem 1.5rem 0.4rem;
-  }
-
-  textarea {
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
-    min-height: 6.25rem;
-    margin: 0;
-    padding: 1.15rem 3.5rem 1.15rem 1.3rem;
-    border: 0;
-    outline: none;
-    resize: none;
-    background: transparent;
-    color: inherit;
-    caret-color: currentColor;
-    font: inherit;
-    font-size: 1.25rem;
-    line-height: 1.45;
-  }
-  textarea::placeholder {
-    color: var(--sent-ph);
-    opacity: 1;
-    transition: opacity 0.18s;
-  }
-  textarea.swapping::placeholder { opacity: 0; }
-
-  .out {
-    box-sizing: border-box;
-    min-height: 6.25rem;
-    padding: 1.15rem 3.5rem 1.15rem 1.3rem;
-    font-size: 1.25rem;
-    line-height: 1.45;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-    transition: opacity 0.18s;
-  }
-  .out.swapping { opacity: 0; }
-  .out.is-ph { color: var(--ph); }
-  .swap {
-    text-decoration: underline dotted var(--sent);
-    text-decoration-thickness: 1.5px;
-    text-underline-offset: 0.25em;
-  }
-  mark.unk {
-    background: var(--mark-bg);
-    color: var(--mark-fg);
-    padding: 0 0.3em;
-    border-radius: 0.3em;
-    font-weight: 600;
-  }
-
-  .icon-btn {
-    position: absolute;
-    top: 0.6rem;
-    right: 0.6rem;
-    width: 2.5rem;
-    height: 2.5rem;
+  .bar-avatar {
     display: grid;
     place-items: center;
-    padding: 0;
-    border: 0;
+    flex: none;
+    width: 2.3rem;
+    height: 2.3rem;
     border-radius: 50%;
-    cursor: pointer;
-    transition: background 0.15s, opacity 0.15s;
+    background: var(--sent-bg);
+    color: var(--sent-fg);
   }
-  .icon-btn svg {
-    width: 1.1rem;
-    height: 1.1rem;
+  .bar-avatar svg {
+    width: 1.2rem;
+    height: 1.2rem;
     fill: none;
     stroke: currentColor;
     stroke-width: 1.7;
     stroke-linecap: round;
     stroke-linejoin: round;
   }
-  .sent .icon-btn { background: rgba(255, 255, 255, 0.18); color: var(--sent-fg); }
-  .sent .icon-btn:hover { background: rgba(255, 255, 255, 0.32); }
-  .sent .icon-btn:focus-visible { outline: 3px solid var(--sent-fg); outline-offset: 2px; }
-  .recv .icon-btn { background: var(--chip); color: var(--ink); }
-  .recv .icon-btn:hover:not(:disabled) { background: var(--line); }
-  .recv .icon-btn:focus-visible { outline: 3px solid var(--sent); outline-offset: 2px; }
-  .icon-btn:disabled { opacity: 0.35; cursor: default; }
-  .i-check { display: none; }
-  .icon-btn.done .i-copy { display: none; }
-  .icon-btn.done .i-check { display: block; }
-
-  .actions { display: flex; }
-  .go {
-    min-height: 3rem;
-    padding: 0 1.9rem;
-    border: 0;
-    border-radius: 999px;
-    background: var(--btn-bg);
-    color: var(--btn-fg);
+  .bar-title {
+    margin: 0;
     font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .bar-text {
+    min-width: 0;
+  }
+  .bar-note {
+    margin: 0.2rem 0 0;
+    color: var(--muted);
+    font-size: 0.75rem;
+    line-height: 1.3;
+  }
+  .bar-title .hl {
+    text-decoration: underline;
+    text-decoration-color: var(--hl);
+    text-decoration-thickness: 0.14em;
+    text-decoration-skip-ink: none;
+    text-underline-offset: 0.08em;
+  }
+
+  /* ==========================================================================
+     Thread
+     ========================================================================== */
+  .thread {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    gap: 0.75rem;
+    min-height: 0;
+    padding: 1rem 1.7rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .thread > :first-child {
+    margin-top: auto;
+  }
+
+  /* ---- Scrollbars follow the colours ---- */
+  .thread,
+  .drawer-body,
+  textarea {
+    scrollbar-width: thin;
+    scrollbar-color: var(--muted) transparent;
+  }
+  .thread::-webkit-scrollbar,
+  .drawer-body::-webkit-scrollbar,
+  textarea::-webkit-scrollbar {
+    width: 12px;
+  }
+  .thread::-webkit-scrollbar-track,
+  .drawer-body::-webkit-scrollbar-track,
+  textarea::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .thread::-webkit-scrollbar-thumb,
+  .drawer-body::-webkit-scrollbar-thumb,
+  textarea::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: var(--muted);
+    background-clip: padding-box;
+  }
+
+  .msg {
+    display: flex;
+  }
+  .msg.sent {
+    justify-content: flex-end;
+  }
+  .msg.fresh {
+    animation: rise 0.24s ease-out both;
+  }
+  .msg.ghost {
+    opacity: 0.5;
+    pointer-events: none;
+    user-select: none;
+  }
+  .msg.ghost .bubble {
+    transition: opacity 0.18s;
+  }
+  .msg.ghost.swapping .bubble {
+    opacity: 0;
+  }
+
+  .msg-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    max-width: var(--msg-max);
+  }
+  .sent .msg-main { align-items: flex-end; }
+  .recv .msg-main { align-items: flex-start; }
+
+  .msg-head {
+    margin: 0 0 0.15rem 0.6rem;
+  }
+  .name {
+    color: var(--muted);
+    font-size: 0.78rem;
     font-weight: 700;
+  }
+
+  .bubble-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.4rem;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .bubble {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    column-gap: 0.6rem;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 0.6rem 0.95rem;
+    border: 1px solid transparent;
     font-size: 1.05rem;
-    letter-spacing: -0.01em;
+    line-height: 1.4;
+  }
+  .sent .bubble {
+    background: var(--sent-bg);
+    color: var(--sent-fg);
+    border-radius: var(--r-sent);
+  }
+  .recv .bubble {
+    background: var(--recv-bg);
+    color: var(--recv-fg);
+    border-color: var(--recv-line);
+    border-radius: var(--r-recv);
+  }
+  .text {
+    flex: 0 1 auto;
+    min-width: 0;
+    margin: 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .stamp {
+    flex: none;
+    margin-left: auto;
+    padding-top: 0.2rem;
+    font-size: 0.68rem;
+    line-height: 1;
+  }
+  .sent .stamp { color: var(--stamp-sent); }
+  .recv .stamp { color: var(--stamp-recv); }
+
+  /* Typing indicator */
+  .dots {
+    display: inline-flex;
+    gap: 0.3rem;
+    padding: 0.4rem 0.15rem;
+  }
+  .dots i {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.4;
+    animation: blink 1.1s infinite ease-in-out;
+  }
+  .dots i:nth-child(2) { animation-delay: 0.18s; }
+  .dots i:nth-child(3) { animation-delay: 0.36s; }
+
+  /* Translated words, blurred swears and unknown abbreviations */
+  .swap {
+    text-decoration: underline dotted currentColor;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 0.25em;
+  }
+  .sw {
+    display: inline-block;
+  }
+  .sw.blur {
+    filter: blur(0.32em);
+  }
+  mark.unk {
+    padding: 0 0.3em;
+    border-radius: 0.3em;
+    background: var(--mark-bg);
+    color: var(--mark-fg);
+    font-weight: 600;
+  }
+
+  .copy {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--chip);
+    color: var(--ink);
+    cursor: pointer;
+    opacity: 0.75;
+    transition: opacity 0.15s, filter 0.15s;
+  }
+  .copy:hover { opacity: 1; filter: brightness(0.93); }
+  .copy:focus-visible { opacity: 1; outline: 3px solid var(--accent); outline-offset: 2px; }
+  .copy svg {
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .copy .i-check { display: none; }
+  .copy.done .i-copy { display: none; }
+  .copy.done .i-check { display: block; }
+
+  /* ==========================================================================
+     Composer
+     ========================================================================== */
+  .composer {
+    padding: 0.6rem 1rem 0.9rem;
+    border-top: 1px solid var(--bar-line);
+    background: var(--bar);
+  }
+  .composer-label {
+    display: block;
+    margin: 0 0 0.4rem 0.25rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .composer-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
+  .field {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    border: 1px solid var(--field-line);
+    border-radius: var(--r-field);
+    background: var(--field-bg);
+    transition: box-shadow 0.15s;
+  }
+  .field:focus-within {
+    box-shadow: 0 0 0 3px var(--ring);
+  }
+  textarea {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 2.8rem;
+    margin: 0;
+    padding: 0.65rem 2.9rem 0.65rem 1rem;
+    border: 0;
+    outline: none;
+    resize: none;
+    background: transparent;
+    color: var(--field-fg);
+    caret-color: currentColor;
+    font: inherit;
+    font-size: 1.05rem;
+    line-height: 1.4;
+  }
+  textarea::placeholder {
+    color: var(--field-ph);
+    opacity: 1;
+    transition: opacity 0.18s;
+  }
+  textarea.swapping::placeholder {
+    opacity: 0;
+  }
+  .clear {
+    position: absolute;
+    right: 0.45rem;
+    bottom: 0.45rem;
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--chip);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .clear:hover { filter: brightness(0.93); }
+  .clear:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .clear svg {
+    width: 0.9rem;
+    height: 0.9rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+  }
+  .send {
+    flex: none;
+    height: 2.8rem;
+    padding: 0 1.3rem;
+    border: 0;
+    border-radius: var(--r-send);
+    background: var(--send-bg);
+    color: var(--send-fg);
+    font-family: var(--font-display);
+    font-size: 1.02rem;
+    font-weight: 700;
     cursor: pointer;
     transition: transform 0.1s, filter 0.15s;
   }
-  .go:hover { filter: brightness(1.18); }
-  .go:active { transform: translateY(1px); }
-  .go:focus-visible { outline: 3px solid var(--sent); outline-offset: 3px; }
+  .send:hover { filter: brightness(1.1); }
+  .send:active { transform: translateY(1px); }
+  .send:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 
-  @media (max-width: 480px) {
-    .go { width: 100%; }
-    textarea, .out { font-size: 1.15rem; }
+  /* ==========================================================================
+     Right-edge tabs and slide-in drawers
+     ========================================================================== */
+  .tabs {
+    position: fixed;
+    top: 5rem;
+    right: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
+  .tab {
+    padding: 0.95rem calc(0.5rem + env(safe-area-inset-right, 0px)) 0.95rem 0.5rem;
+    border: 0;
+    border-radius: 0.8rem 0 0 0.8rem;
+    background: var(--send-bg);
+    color: var(--send-fg);
+    font-family: var(--font-display);
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    writing-mode: vertical-rl;
+    cursor: pointer;
+    box-shadow: -2px 2px 10px -4px rgba(0, 0, 0, 0.45);
+    transition: padding-left 0.18s ease;
+  }
+  /* Hovering stretches the tab outward, so it stays attached to the edge */
+  .tab:hover,
+  .tab:focus-visible {
+    padding-left: 1rem;
+  }
+  .tab:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  .scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    background: rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s, visibility 0s 0.25s;
+  }
+  .scrim.open {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.25s;
+  }
+  .drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: min(23rem, 100%);
+    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) 0;
+    border-left: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: -20px 0 40px -24px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    transform: translateX(100%);
+    visibility: hidden;
+    transition: transform 0.28s ease, visibility 0s 0.28s;
+  }
+  .drawer.wide {
+    width: min(28rem, 100%);
+  }
+  .drawer.open {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.28s ease;
+  }
+  .drawer-head {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem 0.5rem;
+  }
+  .drawer-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .drawer-close {
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--chip);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .drawer-close:hover { filter: brightness(0.93); }
+  .drawer-close:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .drawer-close svg {
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+  }
+  .drawer-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-height: 0;
+    padding: 0.75rem 1.25rem 1.5rem;
+    overflow-y: auto;
+  }
+  .drawer-body p {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  /* ---- Settings controls ---- */
+  .setting {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+  .setting-label {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .seg {
+    display: inline-flex;
+    padding: 0.25rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--chip);
+  }
+  .seg-btn {
+    padding: 0.5rem 1.1rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .seg-btn[aria-pressed="true"] {
+    background: var(--send-bg);
+    color: var(--send-fg);
+  }
+  .seg-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  .color-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+  }
+  .color-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  input[type="color"] {
+    width: 3.4rem;
+    height: 2.5rem;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 0.65rem;
+    background: var(--chat);
+    cursor: pointer;
+  }
+  input[type="color"]::-webkit-color-swatch-wrapper { padding: 0.22rem; }
+  input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 0.45rem; }
+  input[type="color"]::-moz-color-swatch { border: 0; border-radius: 0.45rem; }
+  input[type="color"]:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  .swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  .swatch {
+    width: 2.1rem;
+    height: 2.1rem;
+    padding: 0;
+    border: 2px solid var(--line);
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--p) 50%, var(--s) 50%);
+    cursor: pointer;
+  }
+  .swatch[aria-pressed="true"] { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .swatch:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  .plain-btn {
+    padding: 0.55rem 1.2rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .plain-btn:hover { background: var(--chip); }
+  .plain-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  /* ---- Glossary ---- */
+  .drawer-search {
+    flex: none;
+    padding: 0 1.25rem 0.5rem;
+  }
+  .drawer-search input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--field-line);
+    border-radius: 999px;
+    background: var(--field-bg);
+    color: var(--field-fg);
+    font: inherit;
+    font-size: 0.98rem;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .drawer-search input::placeholder { color: var(--field-ph); opacity: 1; }
+  .drawer-search input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  .gloss-body {
+    gap: 0;
+  }
+  .gloss-cat {
+    position: sticky;
+    top: -0.75rem;
+    z-index: 1;
+    margin: 0;
+    padding: 0.9rem 0 0.4rem;
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .gloss-list {
+    margin: 0;
+    padding: 0;
+  }
+  .gloss-item {
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .gloss-term {
+    margin: 0;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+  .gloss-def {
+    margin: 0.1rem 0 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.45;
+  }
+  .gloss-empty {
+    margin: 1rem 0 0;
+    color: var(--muted);
+  }
+
+  /* ==========================================================================
+     Motion, small screens
+     ========================================================================== */
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes blink {
+    0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
+    40% { opacity: 0.9; transform: translateY(-0.2rem); }
+  }
+  @media (max-width: 56rem) {
+    .thread { padding-right: 2.4rem; }
+  }
+  @media (max-width: 30rem) {
+    :root { --msg-max: 90%; }
+    .thread { padding-left: 0.9rem; padding-right: 2.3rem; }
+    .bar-title { font-size: 1.15rem; }
+    .send { padding: 0 1rem; }
+  }
+  @media (max-height: 34rem) {
+    .tabs { top: 4.2rem; gap: 0.35rem; }
+    .tab { padding-block: 0.6rem; font-size: 0.82rem; }
   }
   @media (prefers-reduced-motion: reduce) {
-    * { transition: none !important; }
+    *, *::before, *::after {
+      animation: none !important;
+      transition: none !important;
+    }
   }
 </style>
 
-<main class="wrap">
-  <h1>Text <span class="hl">Slang</span> Translator</h1>
-
-  <div class="field">
-    <label for="input">Paste text here:</label>
-    <div class="bubble sent">
-      <textarea id="input" rows="3" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
-      <button class="icon-btn" id="clear" type="button" aria-label="Clear" hidden>
-        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
-      </button>
+<div class="app" id="app">
+  <header class="bar">
+    <span class="bar-avatar" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>
+    </span>
+    <div class="bar-text">
+      <h1 class="bar-title">Text <span class="hl">Slang</span> Translator</h1>
+      <p class="bar-note">Automated tool, not a real person. Replies are generated by a program.</p>
     </div>
-  </div>
+  </header>
 
-  <div class="actions">
-    <button class="go" id="go" type="button">Translate</button>
-  </div>
+  <main class="thread" id="thread" role="log" aria-live="polite"></main>
 
-  <div class="bubble recv">
-    <div class="out is-ph" id="output" role="region" aria-label="Translation" aria-live="polite"></div>
-    <button class="icon-btn" id="copy" type="button" aria-label="Copy translation" disabled>
-      <svg class="i-copy" viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 5.5v-1a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h1"/></svg>
-      <svg class="i-check" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg>
+  <form class="composer" id="composer" autocomplete="off">
+    <label class="composer-label" for="input">Paste text here:</label>
+    <div class="composer-row">
+      <div class="field">
+        <textarea id="input" rows="1" spellcheck="false" autocapitalize="off" enterkeyhint="send"></textarea>
+        <button class="clear" id="clear" type="button" aria-label="Clear" hidden>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+        </button>
+      </div>
+      <button class="send" id="go" type="submit">Translate</button>
+    </div>
+  </form>
+</div>
+
+<!-- Right-edge tabs -->
+<nav class="tabs">
+  <button class="tab" id="tabWhy" type="button" aria-expanded="false" aria-controls="drawerWhy">y tho?</button>
+  <button class="tab" id="tabGlossary" type="button" aria-expanded="false" aria-controls="drawerGlossary">glossary</button>
+  <button class="tab" id="tabSettings" type="button" aria-expanded="false" aria-controls="drawerSettings">settings</button>
+</nav>
+
+<div class="scrim" id="scrim"></div>
+
+<!-- Drawer: y tho? -->
+<aside class="drawer" id="drawerWhy" aria-labelledby="whyTitle">
+  <div class="drawer-head">
+    <h2 class="drawer-title" id="whyTitle">y tho?</h2>
+    <button class="drawer-close" type="button" aria-label="Close">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
     </button>
   </div>
-</main>
+  <div class="drawer-body">
+    <p>This site was vibecoded by a human for the use of all humans in order to better understand the humans who like to overcomplicate simple methods of communication. This tool clarifies the shortened or changed forms of words and phrases so that humans who thought that English was complex enough already can understand it.</p>
+  </div>
+</aside>
+
+<!-- Drawer: glossary -->
+<aside class="drawer wide" id="drawerGlossary" aria-labelledby="glossaryTitle">
+  <div class="drawer-head">
+    <h2 class="drawer-title" id="glossaryTitle">glossary</h2>
+    <button class="drawer-close" type="button" aria-label="Close">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+    </button>
+  </div>
+  <div class="drawer-search">
+    <input id="glossSearch" type="search" placeholder="search" aria-label="Search the glossary" autocomplete="off" spellcheck="false">
+  </div>
+  <div class="drawer-body gloss-body" id="glossBody"></div>
+</aside>
+
+<!-- Drawer: settings -->
+<aside class="drawer" id="drawerSettings" aria-labelledby="settingsTitle">
+  <div class="drawer-head">
+    <h2 class="drawer-title" id="settingsTitle">settings</h2>
+    <button class="drawer-close" type="button" aria-label="Close">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <section class="setting">
+      <h3 class="setting-label" id="modeLabel">censor method:</h3>
+      <div class="seg" role="group" aria-labelledby="modeLabel">
+        <button class="seg-btn" id="mBlur" type="button" aria-pressed="true">blur</button>
+        <button class="seg-btn" id="mReplace" type="button" aria-pressed="false">replace</button>
+      </div>
+    </section>
+
+    <section class="setting">
+      <h3 class="setting-label" id="appearanceLabel">appearance:</h3>
+      <div class="seg" role="group" aria-labelledby="appearanceLabel">
+        <button class="seg-btn" type="button" data-appearance="system" aria-pressed="true">system</button>
+        <button class="seg-btn" type="button" data-appearance="light" aria-pressed="false">light</button>
+        <button class="seg-btn" type="button" data-appearance="dark" aria-pressed="false">dark</button>
+      </div>
+    </section>
+
+    <section class="setting">
+      <h3 class="setting-label" id="presetsLabel">presets:</h3>
+      <div class="swatches" role="group" aria-labelledby="presetsLabel" id="swatches"></div>
+    </section>
+
+    <section class="setting">
+      <div class="color-row">
+        <div class="color-field">
+          <label class="setting-label" for="colorPrimary">primary color:</label>
+          <input id="colorPrimary" type="color" value="#0b7a6b">
+        </div>
+        <div class="color-field">
+          <label class="setting-label" for="colorSecondary">secondary color:</label>
+          <input id="colorSecondary" type="color" value="#d6ebe5">
+        </div>
+      </div>
+      <button class="plain-btn" id="resetColors" type="button">reset colors</button>
+    </section>
+
+    <section class="setting">
+      <button class="plain-btn" id="clearChat" type="button">clear chat</button>
+    </section>
+  </div>
+</aside>
 
 <script>
 (function () {
   'use strict';
 
-  /* ---------- Dictionary ---------- */
-  var D = Object.create(null);
-  function add(keys, t, o) {
-    keys.split(' ').forEach(function (k) {
-      D[k] = { t: t, c: (o && o.c) || null, standalone: !!(o && o.standalone), notTime: !!(o && o.notTime) };
-    });
-  }
+  /* ==========================================================================
+     1. Settings you may want to edit
+     ========================================================================== */
 
-  // Everyday chat
-  add('lol', 'laughing out loud');
-  add('lmao', 'laughing my a** off');
-  add('lmfao', 'laughing my f***ing a** off');
-  add('rofl', 'rolling on the floor laughing');
-  add('brb', 'be right back');
-  add('btw', 'by the way');
-  add('idk', "I don't know");
-  add('idc', "I don't care");
-  add('imo', 'in my opinion');
-  add('imho', 'in my humble opinion');
-  add('tbh', 'to be honest');
-  add('ngl', 'not gonna lie');
-  add('fyi', 'for your information');
-  add('ikr', 'I know, right');
-  add('omg', 'oh my god');
-  add('smh', 'shaking my head');
-  add('ttyl', 'talk to you later');
-  add('gtg g2g', 'got to go');
-  add('nvm', 'never mind');
-  add('asap', 'as soon as possible');
-  add('tmi', 'too much information');
-  add('icymi', 'in case you missed it');
-  add('irl', 'in real life');
-  add('afk', 'away from keyboard');
-  add('dm', 'direct message');
-  add('pm', 'private message', { notTime: true });
-  add('ootd', 'outfit of the day');
-  add('fomo', 'fear of missing out');
-  add('yolo', 'you only live once');
-  add('iykyk', 'if you know, you know');
+  var NAMES = { recv: 'Translation' };
 
-  // Replies and reactions
-  add('k kk', 'okay');
-  add('np', 'no problem');
-  add('ty', 'thank you');
-  add('thx thnx', 'thanks');
-  add('yw', "you're welcome");
-  add('jk', 'just kidding');
-  add('ofc', 'of course');
-  add('ily', 'I love you');
-  add('idgaf', "I don't give a f***");
-  add('wtf', 'what the f***');
-  add('wyd', 'what are you doing');
-  add('hmu', 'hit me up');
-  add('lmk', 'let me know');
-  add('otw', 'on the way');
-  add('idrk', "I don't really know");
-  add('smth', 'something');
-  add('rn', 'right now');
-  add('tfw', 'that feeling when');
-  add('mfw', 'my face when');
-  add('istg', 'I swear to god');
-
-  // Slang and social media
-  add('fr', 'for real');
-  add('frfr', 'for real, for real');
-  add('ong', 'on god (I swear)');
-  add('bet', 'okay, sounds good', { standalone: true });
-  add('goat', 'greatest of all time', { c: 'upper' });
-  add('fyp', 'for you page');
-  add('pov', 'point of view');
-  add('tbt', 'throwback Thursday');
-  add('bff', 'best friends forever');
-  add('bae', 'before anyone else');
-  add('eli5', "explain like I'm five");
-  add('tl;dr tldr', "too long; didn't read");
-  add('ama', 'ask me anything');
-  add('op', 'original poster (or overpowered)', { c: 'upper' });
-  add('sus', 'suspicious');
-  add('rip', 'rest in peace', { c: 'upper' });
-  add('fwiw', "for what it's worth");
-  add('iirc', 'if I recall correctly');
-  add('afaik', 'as far as I know');
-  add('til', 'today I learned', { c: 'upper' });
-  add('nsfw', 'not safe for work');
-  add('sfw', 'safe for work');
-  add('atm', 'at the moment', { c: 'lower' });
-  add('xoxo', 'hugs and kisses');
-
-  // Gaming
-  add('gg', 'good game');
-  add('ggez', 'good game, easy');
-  add('glhf', 'good luck, have fun');
-  add('wp', 'well played');
-  add('npc', 'non-player character');
-  add('xp', 'experience points');
-  add('pvp', 'player versus player');
-  add('pve', 'player versus environment');
-  add('rng', 'random number generator (luck)');
-  add('lfg', 'looking for group');
-  add('nerf', 'weaken');
-  add('buff', 'strengthen', { c: 'upper' });
-
-  // Work and school
-  add('eod', 'end of day');
-  add('ooo', 'out of office', { c: 'upper' });
-  add('wfh', 'work from home');
-  add('ftw', 'for the win');
-  add('tbd', 'to be determined');
-  add('tba', 'to be announced');
-  add('eta', 'estimated time of arrival');
-  add('rsvp', 'please respond');
-  add('faq', 'frequently asked questions');
-  add('diy', 'do it yourself');
-  add('pto', 'paid time off');
-  add('wip', 'work in progress');
-  add('hw', 'homework');
-
-  // Other common shorthand
-  add('u', 'you', { c: 'lower' });
-  add('r', 'are', { c: 'lower' });
-  add('ur', 'your');
-  add('pls plz', 'please');
-  add('bc', 'because', { c: 'lower' });
-  add('cuz', 'because');
-  add('tho', 'though');
-  add('gr8', 'great');
-  add('l8r', 'later');
-  add('b4', 'before');
-  add('abt', 'about');
-  add('ppl', 'people');
-  add('msg', 'message');
-  add('tmrw tmr', 'tomorrow');
-  add('sry', 'sorry');
-  add('wbu', 'what about you');
-  add('hbu', 'how about you');
-  add('wdym', 'what do you mean');
-  add('omw', 'on my way');
-  add('nbd', 'no big deal');
-  add('bday', 'birthday');
-  add('convo', 'conversation');
-  add('fav', 'favorite');
-  add('rly', 'really');
-  add('ez', 'easy');
-  add('prolly', 'probably');
-  add('gonna', 'going to');
-  add('wanna', 'want to');
-  add('gotta', 'got to');
-  add('kinda', 'kind of');
-  add('dunno', "don't know");
-  add('lemme', 'let me');
-  add('gimme', 'give me');
-
-  var TONES = {
-    s: '(sarcastic)', j: '(joking)', srs: '(serious)', hj: '(half joking)', gen: '(genuine)',
-    pos: '(positive tone)', neg: '(negative tone)', lh: '(lighthearted)', t: '(teasing)'
-  };
-
-  // Words with no real vowels that should never become "???"
-  var NOVOWEL_OK = /^(h+m+|m+|sh+|ps+t|br+|pf+t|tsk|nth|zz+|gr+|mhm|xx+|mr|mrs|ms|dr|st|nd|rd|th|pm|vs|jr|sr|hr|hrs|wk|wks|yr|yrs|mo|mph|kph|bpm|cm|mm|km|kg|lb|lbs|oz|ml|mg|ft|tbsp|tsp|ctrl|pts|my|by|why|try|cry|dry|fly|fry|shy|sky|sly|spy|pry|wry|thy|gym|myth|lynx|hymn|sync|rhythm|nymph|crypt|gypsy|www|http|https|html|css|tv|pc|cd|dvd|usb|gps|cpu|gpu|pdf|sql|ppt)$/;
-
-  var RE = /https?:\/\/\S+|www\.\S+|\S+@\S+\.\S+|(?<![\w\/])\/(?:srs|hj|gen|pos|neg|lh|s|j|t)(?![\w\/])|(?<!\S)\^+(?!\S)|tl;dr|[a-z0-9]+(?:['’][a-z]+)*/gi;
-
-  function find(tok) {
-    var lower = tok.toLowerCase();
-    var e = D[lower];
-    if (!e && lower.length >= 3) {
-      e = D[lower.replace(/(.)\1{2,}/g, '$1')] || D[lower.replace(/(.)\1+/g, '$1')];
-    }
-    if (!e) return null;
-    if (e.c === 'upper' && !(tok === tok.toUpperCase() && tok.length >= 2)) return null;
-    if (e.c === 'lower' && tok !== lower) return null;
-    return e;
-  }
-
-  function allCaps(tok) {
-    return tok.length > 1 && tok === tok.toUpperCase() && /[A-Z]/.test(tok);
-  }
-
-  function isShout(text) {
-    var w = text.match(/\b[A-Za-z]{2,}\b/g) || [];
-    if (w.length < 3) return false;
-    var up = w.filter(function (x) { return x === x.toUpperCase(); }).length;
-    return up / w.length >= 0.6;
-  }
-
-  function isUnknown(tok) {
-    if (!/^[A-Za-z]+$/.test(tok) || tok.length < 2) return false;
-    var l = tok.toLowerCase();
-    if (tok !== l && tok !== tok.toUpperCase()) return false;
-    if (/[aeiou]/.test(l)) return false;
-    return !NOVOWEL_OK.test(l);
-  }
-
-  function translate(text) {
-    var parts = [], last = 0, m;
-    var shout = isShout(text);
-    var re = new RegExp(RE.source, 'gi');
-    while ((m = re.exec(text)) !== null) {
-      var tok = m[0], i = m.index;
-      var before = text.slice(0, i), after = text.slice(i + tok.length);
-      var rep = null, unk = false;
-      if (/^(https?:|www\.)/i.test(tok) || tok.indexOf('@') > -1) continue;
-      if (tok.charAt(0) === '/') {
-        rep = TONES[tok.slice(1).toLowerCase()] || null;
-      } else if (tok.charAt(0) === '^') {
-        rep = '(the message above)';
-      } else {
-        var e = find(tok);
-        if (e && e.notTime && /\d\s*$/.test(before)) e = null;
-        if (e && e.standalone && !(/(^|[.!?,;\n])\s*$/.test(before) && /^\s*([.!?,;\n]|$)/.test(after))) e = null;
-        if (e) {
-          rep = e.t;
-          if (shout && allCaps(tok)) rep = rep.toUpperCase();
-          else if (/(^|[.!?\n])\s*$/.test(before)) rep = rep.charAt(0).toUpperCase() + rep.slice(1);
-        } else if (isUnknown(tok)) {
-          unk = true;
-        }
-      }
-      if (rep === null && !unk) continue;
-      if (i > last) parts.push({ t: text.slice(last, i) });
-      parts.push(unk ? { t: '???', from: tok, unk: true } : { t: rep, from: tok });
-      last = i + tok.length;
-    }
-    if (last < text.length) parts.push({ t: text.slice(last) });
-    return parts;
-  }
-
-  function plain(parts) {
-    return parts.map(function (p) { return p.t; }).join('');
-  }
-
-  if (typeof document === 'undefined') {
-    globalThis.__api = { translate: translate, plain: plain };
-    return;
-  }
-
-  /* ---------- UI ---------- */
-  var EX = [
+  var EXAMPLES = [
     "omg imo that's sus fr",
     'idk what to do rn tbh',
     'brb gtg ttyl lol',
@@ -495,124 +954,1573 @@
     'np btw, hmu tmrw ofc',
     'ikr smh that was tmi',
     'gg wp glhf next time',
-    'ngl idc fr fr'
+    'ngl idc fr fr',
+    "lwk we're cooked fam",
+    'ye nah, ion even care ngl',
+    "that's such a cap, no cap"
   ];
-  var EXT = EX.map(function (s) { return plain(translate(s)); });
 
-  var ta = document.getElementById('input');
-  var out = document.getElementById('output');
-  var go = document.getElementById('go');
-  var clearBtn = document.getElementById('clear');
-  var copyBtn = document.getElementById('copy');
-  var idx = 0, hasResult = false, lastPlain = '', copyTimer = null;
-  var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var TYPING_MS = { base: 700, perChar: 10, max: 1500, reduced: 350 };
 
-  function fit() {
-    ta.style.height = 'auto';
-    ta.style.height = Math.min(ta.scrollHeight, 360) + 'px';
+  /* ==========================================================================
+     2. Swear words: [real word, mild stand-in]. MODE picks which one is shown.
+     ========================================================================== */
+
+  var SW = {
+    fuck: ['fuck', 'frick'], fucks: ['fucks', 'fricks'], fucked: ['fucked', 'fricked'],
+    fucking: ['fucking', 'fricking'], fuckin: ['fuckin', 'frickin'],
+    motherfucker: ['motherfucker', 'jerk'], motherfuckers: ['motherfuckers', 'jerks'],
+    shit: ['shit', 'crud'], shitty: ['shitty', 'crummy'], bullshit: ['bullshit', 'baloney'],
+    ass: ['ass', 'butt'], asses: ['asses', 'butts'], asshole: ['asshole', 'jerk'],
+    damn: ['damn', 'darn'], damned: ['damned', 'darned'], dammit: ['dammit', 'darn it'],
+    hell: ['hell', 'heck'],
+    bitch: ['bitch', 'meanie'], bitches: ['bitches', 'meanies'],
+    piss: ['piss', 'pee'], pissed: ['pissed', 'ticked'], pisses: ['pisses', 'ticks']
+  };
+  var MODE = 'blur'; // 'blur' or 'replace'
+
+  /* ==========================================================================
+     3. Dictionary
+     section('name') groups the entries that follow (used by the glossary).
+     add('key key2', 'meaning', options)
+     Options: c (case rule), ctx / ctxAfter / startNext / orStandalone / standalone /
+     both (need context), start, between, not, notNext, next, noCall, needApos,
+     apos, dropG, alt, fn, gloss. {word} inside a meaning marks a swear that
+     follows the censor setting.
+     ========================================================================== */
+
+  var D = Object.create(null);
+  var CAT = '';
+
+  function section(name) {
+    CAT = name;
   }
-  function syncClear() { clearBtn.hidden = !ta.value; }
 
-  function renderIdle() {
-    out.className = 'out is-ph';
-    out.textContent = EXT[idx];
-    out.setAttribute('aria-hidden', 'true');
-    copyBtn.disabled = true;
+  function add(keys, text, opts) {
+    var entry = { t: text, c: null, cat: CAT };
+    if (opts) {
+      for (var key in opts) {
+        entry[key] = opts[key];
+      }
+    }
+    if (typeof entry.alt === 'string') {
+      entry.alt = { t: entry.alt, c: null, apos: entry.apos };
+    }
+    keys.split(' ').forEach(function (k) { D[k] = entry; });
   }
-  function renderResult(parts) {
-    out.className = 'out';
-    out.removeAttribute('aria-hidden');
-    out.textContent = '';
+
+  // Context rules for words that are also normal English
+  var CTX_CAP = /(?:^|[\s(])(?:that['’]?s|thats|that is|this is|it['’]?s|its|he['’]?s|hes|she['’]?s|shes|you['’]?re|youre|they['’]?re|theyre|we['’]?re|ur|u r|all|pure|straight|total|complete|some|so much|such an?|what an?|is|was|sounds? like|calling|called|call|callin|calls|hella)\s+$/i;
+  var AFTER_CAP = /^\s*(?:fr|frfr|ngl|bro|bruh|fam|lol|lmao|ong|rn|periodt|bffr)(?![\w'’])/i;
+  var CTX_CAPPING = /(?:^|[\s(])(?:(?:he|she|they|we|you|u|i|y['’]?all|yall)(?:['’]?s|['’]?re|['’]?m)?\s+(?:(?:is|are|am|be|been|keep|kept|always|just|still|really|literally|constantly|not|so)\s+)*|(?:stop|quit|keep|kept|no|dont|don['’]t)\s+)$/i;
+  var CTX_CAPPED = /(?:^|[\s(])(?:he|she|they|we|you|u|ya|y['’]?all|yall)(?:['’]?s|['’]?ve|['’]?d)?\s+(?:(?:just|really|literally|actually|totally|fully)\s+)?$/i;
+  var AFTER_CAPPED = /^\s*(?:$|[.!?,;]|(?:fr|frfr|ngl|bro|bruh|fam|lol|lmao|ong|rn|there|on that|about that)(?![\w'’]))/i;
+  var CTX_COOKED = /(?:^|[\s(])(?:i['’]?m|im|i am|we['’]?re|we are|we r|were|you['’]?re|youre|you are|u r|ur|he['’]?s|she['’]?s|they['’]?re|it['’]?s|its|that['’]?s|thats|this is|chat is|get|got|getting|be|gonna be|so|totally|completely|absolutely|fully|literally|actually|really|lowkey|lwk|highkey|just)\s+(?:(?:so|totally|completely|absolutely|fully|literally|actually|really|lowkey|lwk|highkey|just)\s+)?$/i;
+  var CTX_MID = /(?:^|[\s(])(?:is|was|so|pretty|kinda|very|too|that['’]?s|thats|it['’]?s|its|honestly|literally|lowkey|lwk|highkey|just|really|totally|fully|a bit|are|be|looks?|feels?|seems?|sorta)\s+$/i;
+  var AFTER_SLAY = /^\s*(?:$|[.!?,;]|queen|king|girl|bestie|bff|fam|periodt)/i;
+  var AFTER_SLAYED = /^\s*(?:$|[.!?,;]|queen|king|girl|bestie|bff|fam|periodt|fr|ngl|that|it(?![\w'’])|today|tonight|the\s+(?:look|fit|outfit|day|game|show))/i;
+  var CTX_WL = /(?:^|[\s(])(?:big|huge|massive|major|another|easy|ez|take|took|taking|takes|that['’]?s|thats|got|get|gets|a|an|the|my|ur|your|biggest|and)\s+$/i;
+  var AFTER_WL = /^\s+(?:rizz|take|post|fit|move|game|day|bro|friend|aura|energy|play|win)(?![\w'’])/i;
+  var CTX_FACTS = /(?:^|[\s(])(?:that['’]?s|thats|straight|pure|honest|literally|just|all|real|these|those)\s+$/i;
+  var CTX_SLAPS = /(?:^|[\s(])(?:this|that|it|song|beat|track|album|fit|verse)\s+$/i;
+  var CTX_SHOOK = /(?:^|[\s(])(?:i['’]?m|im|i am|we['’]?re|you['’]?re|youre|they['’]?re|he['’]?s|she['’]?s|was|were|so|literally|honestly|totally|absolutely|lowkey|lwk)\s+$/i;
+  var CTX_BASED = /(?:^|[\s(])(?:so|very|absolutely|totally|that['’]?s|thats|he['’]?s|she['’]?s|you['’]?re|youre|they['’]?re|extremely|completely|actually|literally)\s+$/i;
+  var NOT_BASED = /^\s+(?:on|upon|in|at|out|off|around)(?![\w'’])/i;
+  var CTX_GLAZING = /(?:^|[\s(])(?:stop|quit|keep|kept|he['’]?s|she['’]?s|you['’]?re|youre|they['’]?re|we['’]?re|just|all|y['’]?all|yall)\s+$/i;
+  var CTX_CHOPPED = /(?:^|[\s(])(?:i['’]?m|im|i am|we['’]?re|you['’]?re|youre|they['’]?re|he['’]?s|she['’]?s|so|literally|totally|absolutely|fully|lowkey|lwk)\s+$/i;
+  var CTX_CRACKED = /(?:^|[\s(])(?:that['’]?s|thats|he['’]?s|she['’]?s|you['’]?re|youre|they['’]?re|so|literally|absolutely|totally|lowkey)\s+$/i;
+  var NOT_CRACKED = /^\s+(?:the|a|an|his|her|my|your|their|open|up|down|it|egg|eggs|screen)(?![\w'’])/i;
+  var CTX_WASHED = /(?:^|[\s(])(?:i['’]?m|im|we['’]?re|you['’]?re|youre|they['’]?re|he['’]?s|she['’]?s|so|literally|totally|absolutely|lowkey|lwk)\s+$/i;
+  var START_BET = /^\s+(?:i['’]?ll|ill|let['’]?s|lets|see|ok|okay|sounds|fr|ong|aight|alr|say|bro|bruh|fam)(?![\w'’])/i;
+  var NOT_BOUT = /(?:^|\s)(?:a|an|the|this|that|another|one|first|last|each|every|boxing|title)\s+$/i;
+  var NEXT_ION = /^\s+(?:know|care|think|even|like|want|wanna|have|see|got|mind|need|play|really|be)(?![\w'’])/i;
+  var NEXT_Y = /^\s+(?:tho|though|so|u|you|r|are|not|would|did|is|do|does)(?![\w'’])/i;
+
+  section('Laughing and reacting');
+  add('lol lolz lool', 'laughing out loud');
+  add('lmao lmaoo', 'laughing my {ass} off');
+  add('lmfao', 'laughing my {fucking} {ass} off');
+  add('rofl rotfl fotfl fofl', 'rolling on the floor laughing');
+  add('roflmao', 'rolling on the floor laughing my {ass} off');
+  add('csl', "can't stop laughing");
+  add('xd', 'laughing');
+  add('kek lul', 'laughing (gamer slang)');
+  add('omg omgg', 'oh my gosh');
+  add('omfg', 'oh my {fucking} gosh');
+  add('zomg', 'oh my gosh');
+  add('oml', 'oh my lord');
+  add('wtf', 'what the {fuck}');
+  add('wth', 'what the {hell}');
+  add('wtaf', 'what the actual {fuck}');
+  add('tf', 'the {fuck}', { c: 'lower' });
+  add('ffs', "for {fuck}'s sake");
+  add('stfu', 'shut the {fuck} up');
+  add('gtfo', 'get the {fuck} out');
+  add('jfc', 'Jesus {fucking} Christ');
+  add('fml', '{fuck} my life');
+  add('smh', 'shaking my head');
+  add('smdh', 'shaking my {damn} head');
+  add('smfh', 'shaking my {fucking} head');
+  add('idgaf dgaf', "I don't give a {fuck}");
+  add('idfk', "I don't {fucking} know");
+  add('idfc', "I don't {fucking} care");
+  add('bs', '{bullshit}');
+  add('af asf', 'as {fuck}', { c: 'lu' });
+  add('pita', 'pain in the {ass}');
+  add('mf', '{motherfucker}');
+  add('mfs', '{motherfuckers}');
+  add('orly', 'oh really');
+  add('oic', 'oh, I see');
+  add('oof', 'ouch (said in sympathy)');
+  add('kys', 'kill yourself');
+  add('kms', 'kill myself');
+
+  section('Everyday chat');
+  add('brb', 'be right back');
+  add('btw', 'by the way');
+  add('idk', "I don't know");
+  add('dk', "don't know");
+  add('idc', "I don't care");
+  add('idrc', "I don't really care");
+  add('idrk', "I don't really know");
+  add('idek', "I don't even know");
+  add('idts', "I don't think so");
+  add('idr', "I don't remember");
+  add('idm', "I don't mind");
+  add('ik', 'I know');
+  add('ikr', 'I know, right');
+  add('imo', 'in my opinion');
+  add('imho', 'in my humble opinion');
+  add('tbh', 'to be honest');
+  add('tbqh', 'to be quite honest');
+  add('tbf', 'to be fair');
+  add('ngl ncl', 'not gonna lie');
+  add('icl', "I can't lie");
+  add('fyi', 'for your information');
+  add('ttyl', 'talk to you later');
+  add('ttyt', 'talk to you tomorrow');
+  add('ttys', 'talk to you soon');
+  add('ttfn', 'ta-ta for now');
+  add('gtg g2g', 'got to go');
+  add('gtgb', 'got to go, bye');
+  add('b4n', 'bye for now');
+  add('cya cu', 'see you');
+  add('cul8r syl', 'see you later');
+  add('cwyl', 'chat with you later');
+  add('bbl', 'be back later');
+  add('bbs', 'be back soon');
+  add('bbiab', 'be back in a bit');
+  add('brt', 'be right there');
+  add('wb', 'welcome back');
+  add('gn gnite gnight', 'good night');
+  add('gm', 'good morning');
+  add('hagd', 'have a great day');
+  add('tc', 'take care');
+  add('hbd', 'happy birthday');
+  add('xmas', 'Christmas');
+  add('tgif', "thank gosh it's Friday");
+  add('nvm', 'never mind');
+  add('asap', 'as soon as possible');
+  add('tmi', 'too much information');
+  add('icymi', 'in case you missed it');
+  add('irl', 'in real life');
+  add('afk', 'away from keyboard');
+  add('dm', 'direct message');
+  add('dms', 'direct messages');
+  add('pm', 'private message', { notTime: true });
+  add('ootd', 'outfit of the day');
+  add('fomo', 'fear of missing out');
+  add('yolo', 'you only live once');
+  add('iykyk', 'if you know, you know');
+  add('jsyk', 'just so you know');
+  add('ftr', 'for the record');
+  add('fwiw', "for what it's worth");
+  add('iirc', 'if I recall correctly');
+  add('iiuc', 'if I understand correctly');
+  add('afaik', 'as far as I know');
+  add('afaict', 'as far as I can tell');
+  add('otoh', 'on the other hand');
+  add('iow', 'in other words');
+  add('aka', 'also known as');
+  add('ymmv', 'your mileage may vary');
+  add('ianal', 'I am not a lawyer');
+  add('hth', 'hope this helps');
+  add('ftfy', 'fixed that for you');
+  add('dae', 'does anyone else');
+  add('ysk', 'you should know');
+  add('mrw', 'my reaction when');
+  add('btdt', 'been there, done that');
+  add('bif', 'before I forget');
+  add('j2lyk', 'just to let you know');
+  add('mtf', 'more to follow');
+  add('g4i', 'go for it');
+  add('n1', 'nice one');
+  add('prw', 'parents are watching');
+  add('asl', 'age, sex, location (or as {hell})');
+
+  section('Replies and reactions');
+  add('ok okk', 'okay');
+  add('k kk kay', 'okay');
+  add('np', 'no problem');
+  add('nbd', 'no big deal');
+  add('nw', 'no worries');
+  add('dw', "don't worry");
+  add('mb', 'my bad', { notTime: true });
+  add('nm', 'nothing much', { notTime: true });
+  add('nmu', 'not much, you');
+  add('nmp', 'not my problem');
+  add('ntm', 'not to mention');
+  add('nty', 'no thank you');
+  add('sok', "it's okay");
+  add('ty', 'thank you');
+  add('tq 10q', 'thank you');
+  add('tysm', 'thank you so much');
+  add('tyvm', 'thank you very much');
+  add('thx thnx tks tnx thks thnks', 'thanks');
+  add('yw', "you're welcome");
+  add('sry srry soz', 'sorry');
+  add('jk sike', 'just kidding');
+  add('ofc', 'of course');
+  add('obv obvs obvi', 'obviously');
+  add('srsly srs', 'seriously');
+  add('defo', 'definitely');
+  add('def', 'definitely', { c: 'lower' });
+  add('totes', 'totally');
+  add('probs', 'probably');
+  add('alr aight ight', 'alright');
+  add('yh', 'yeah');
+  add('nvr', 'never');
+  add('ig', 'I guess', { c: 'lower' });
+  add('yk yknow ykno', 'you know');
+  add('ykw', 'you know what');
+  add('ykwim', 'you know what I mean');
+  add('ikwym', 'I know what you mean');
+  add('iykwim', 'if you know what I mean');
+  add('ily ilu', 'I love you');
+  add('ilysm', 'I love you so much');
+  add('xoxo xo', 'hugs and kisses');
+  add('xx xxx', 'kisses');
+  add('bb', 'baby (or bye bye)', { c: 'lu' });
+  add('hmu', 'hit me up');
+  add('lmk', 'let me know');
+  add('otw omw', 'on my way');
+  add('wyd', 'what are you doing');
+  add('wya', 'where you at');
+  add('wru', 'where are you');
+  add('hru', 'how are you');
+  add('hyd', 'how you doing');
+  add('wbu', 'what about you');
+  add('hbu', 'how about you');
+  add('wdym', 'what do you mean');
+  add('wym', 'what do you mean');
+  add('wtv', 'whatever');
+  add('wsg', "what's good");
+  add('wsp', "what's up");
+  add('smth', 'something');
+  add('rn', 'right now');
+  add('tn', 'tonight', { c: 'lower' });
+  add('fs', 'for sure');
+  add('sm', 'so much', { c: 'lower' });
+  add('atp', 'at this point', { c: 'lower' });
+  add('tfw', 'that feeling when');
+  add('mfw', 'my face when');
+  add('istg', 'I swear to gosh');
+  add('bffr', 'be for real');
+  add('pmo', '{pisses} me off');
+  add('ts', 'this {shit}', { c: 'lower' });
+  add('sybau', 'shut your {bitch} {ass} up');
+
+  section('Yes, no and short answers');
+  add('ye', 'yes', { start: true, c: 'lower' });
+  add('yeah yea yeh yep yup yuh yessir yessirr', 'yes');
+  add('yas yass', 'yes (excited)');
+  add('nah naw nope', 'no');
+  add('yo', 'hey', { start: true, c: 'lower' });
+  add('sup wassup wazzup whaddup wsup', "what's up");
+  add('innit', "isn't it");
+  add('iono idunno', "I don't know");
+  add('ion', "I don't", { next: NEXT_ION, c: 'lower' });
+  add('ya', 'you', { c: 'lower' });
+  add("y'all yall ya'll", 'you all');
+  add("ain't aint", 'is not', { fn: ainFn, gloss: 'am / is / are not' });
+  add('purr', 'yes, I like that', { standalone: true });
+  add('bet', 'okay, sounds good', { standalone: true, startNext: START_BET });
+
+  function ainFn(before) {
+    if (/(?:^|[\s(])(?:i|im|i['’]m)\s+$/i.test(before)) return 'am not';
+    if (/(?:^|[\s(])(?:you|u|we|they|ya|yall|y['’]all|youre|you['’]re|theyre|they['’]re|were|we['’]re)\s+$/i.test(before)) return 'are not';
+    return 'is not';
+  }
+
+  section('Internet and social media');
+  add('fr', 'for real');
+  add('frfr', 'for real, for real');
+  add('ong', 'on gosh (I swear)');
+  add('goat', 'greatest of all time', { c: 'upper' });
+  add('goated', 'excellent (greatest of all time)');
+  add('fyp', 'for you page');
+  add('pov', 'point of view');
+  add('tbt', 'throwback Thursday');
+  add('wcw', 'woman crush Wednesday');
+  add('mcm', 'man crush Monday');
+  add('bff bffs', 'best friends forever');
+  add('bae', 'before anyone else');
+  add('bf', 'boyfriend (or best friend)');
+  add('gf', 'girlfriend');
+  add('fwb', 'friends with benefits');
+  add('ltr', 'long-term relationship');
+  add('otp', 'one true pair', { c: 'lu' });
+  add('pfp', 'profile picture');
+  add('og', 'original (or longtime veteran)', { c: 'lu' });
+  add('eli5', "explain like I'm five");
+  add('tl;dr tldr', "too long; didn't read");
+  add('ama', 'ask me anything');
+  add('op', 'original poster (or overpowered)', { c: 'upper' });
+  add('sus sussy', 'suspicious');
+  add('rip', 'rest in peace', { c: 'upper' });
+  add('til', 'today I learned', { c: 'upper', alt: 'until', apos: true });
+  add('nsfw', 'not safe for work');
+  add('sfw', 'safe for work');
+  add('tw', 'trigger warning');
+  add('cw', 'content warning');
+  add('rt', 'retweet');
+  add('atm', 'at the moment', { c: 'lower' });
+  add('ghosted', 'suddenly ignored (cut off contact with)');
+  add('ghosting', 'suddenly ignoring someone (cutting off contact)');
+  add('situationship', 'an undefined romantic relationship');
+  add('gaslighting gaslight gaslit', 'making someone doubt their own reality');
+  add('doomscrolling doomscroll', 'endlessly scrolling bad news');
+  add('ragebait', 'content made to make people angry');
+  add('girlboss', 'confident, ambitious woman (often used ironically)');
+  add('chronically', 'constantly', { next: /^\s+online(?![\w'’])/i });
+
+  section('Gen Z and Gen Alpha');
+  add('lwk', 'lowkey (somewhat, or secretly)');
+  add('lowkey', 'somewhat (or secretly)');
+  add('highkey', 'very (or openly)');
+  add('cap', 'a lie', { fn: function (b) { return /(?:^|\s)an?\s+$/i.test(b) ? 'lie' : 'a lie'; }, gloss: 'a lie', ctx: CTX_CAP, ctxAfter: AFTER_CAP, orStandalone: true });
+  add('capping cappin', 'lying', { ctx: CTX_CAPPING, ctxAfter: AFTER_CAP, orStandalone: true });
+  add('capped', 'lied', { ctx: CTX_CAPPED, ctxAfter: AFTER_CAPPED, both: true });
+  add('fam', 'close friends or family');
+  add('cooked', 'doomed (or exhausted)', { ctx: CTX_COOKED, orStandalone: true });
+  add('mid', 'mediocre', { ctx: CTX_MID, orStandalone: true, noHyphen: true });
+  add('slay', 'do amazingly (or look amazing)', { ctxAfter: AFTER_SLAY });
+  add('slayed slaying', 'did amazingly (or looked amazing)', { ctxAfter: AFTER_SLAYED });
+  add('w', 'win', { c: 'upper1', ctx: CTX_WL, ctxAfter: AFTER_WL });
+  add('l', 'loss', { c: 'upper1', ctx: CTX_WL, ctxAfter: AFTER_WL });
+  add('bussin', 'really good');
+  add('slaps', 'is really good', { ctx: CTX_SLAPS });
+  add('rizz', 'charm (flirting skill)');
+  add('rizzed', 'charmed');
+  add('rizzler', 'smooth talker');
+  add('delulu', 'delusional');
+  add('deadass', 'seriously');
+  add('bruh bruhh', 'bro');
+  add('sheesh', 'wow');
+  add('pookie', 'sweetheart');
+  add('bestie', 'best friend');
+  add('baddie', 'confident, attractive person');
+  add('boujee', 'fancy');
+  add('simp', 'someone overly devoted to a crush');
+  add('stan', 'devoted fan', { c: 'lower' });
+  add('stanning', 'being a devoted fan of');
+  add('periodt', 'period (end of discussion)');
+  add('sksksk', '(excited squealing)');
+  add('oop', 'oops');
+  add('cringe', 'embarrassing');
+  add('crine', 'so funny it makes you cry');
+  add('cheugy', 'out of date or trying too hard');
+  add('gatekeep', 'keep something to yourself');
+  add('yeet', 'throw');
+  add('yapping', 'talking a lot');
+  add('yapper', 'someone who talks a lot');
+  add('tryhard', 'someone trying too hard');
+  add('larp larping', 'pretending to be someone you are not');
+  add('larper', 'someone pretending to be something they are not');
+  add('unc', 'uncle (a joking name for an older person)');
+  add('noob newb n00b', 'beginner');
+  add('boomer', 'older person (often dismissive)');
+  add('zoomer', 'Gen Z person');
+  add('skibidi', 'nonsense (a meme word)');
+  add('sigma', 'independent and self-assured (a meme word)');
+  add('gyat gyatt', 'gosh {damn} (wow)');
+  add('mewing', 'tongue-posture jaw trend');
+  add('mog mogged', 'outshone (in looks)');
+  add('mogging', 'outshining (in looks)');
+  add('mogger', 'someone who outshines others in looks');
+  add('looksmaxxing looksmaxing', 'working to improve your looks');
+  add('sleepmaxxing', 'working to optimize your sleep');
+  add('maxxing', 'going all-in to optimize something');
+  add('tuff', 'cool (tough)');
+  add('pog poggers', 'awesome (gaming exclamation)');
+  add('gng', 'gang (close friends)');
+  add('brainrot', 'low-quality, addictive internet content (or its effect)');
+  add('crashout', 'an emotional meltdown');
+  add('vibing', 'relaxing and enjoying the moment');
+  add('facts', 'true (I agree)', { ctx: CTX_FACTS, orStandalone: true });
+  add('shook', 'shocked or shaken', { ctx: CTX_SHOOK });
+  add('based', 'self-assured and unbothered by others (or good)', { ctx: CTX_BASED, notNext: NOT_BASED, orStandalone: true });
+  add('glazing', 'giving excessive praise', { ctx: CTX_GLAZING });
+  add('chopped', 'unattractive (or hopeless)', { ctx: CTX_CHOPPED });
+  add('cracked', 'extremely skilled (or wild)', { ctx: CTX_CRACKED, notNext: NOT_CRACKED });
+  add('gagged', 'amazed or shocked', { ctx: CTX_SHOOK });
+  add('washed', 'past your prime', { ctx: CTX_WASHED });
+
+  section('Gaming');
+  add('gg', 'good game');
+  add('ggs', 'good games');
+  add('ggez', 'good game, easy');
+  add('ggwp', 'good game, well played');
+  add('glhf', 'good luck, have fun');
+  add('gl', 'good luck');
+  add('hf', 'have fun');
+  add('wp', 'well played');
+  add('gj', 'good job');
+  add('gz grats gratz', 'congratulations');
+  add('ez', 'easy');
+  add('pwned', 'dominated');
+  add('rekt', 'wrecked (badly beaten)');
+  add('npc', 'non-player character (or someone acting robotic)');
+  add('xp', 'experience points');
+  add('pvp', 'player versus player');
+  add('pve', 'player versus environment');
+  add('rng', 'random number generator (luck)');
+  add('lfg', 'looking for group');
+  add('lfm', 'looking for more');
+  add('nerf', 'weaken');
+  add('buff', 'strengthen', { c: 'upper' });
+  add('kd', 'kill/death ratio');
+  add('kda', 'kills, deaths, assists');
+  add('fps', 'frames per second (or first-person shooter)');
+  add('hp', 'health points (or horsepower)');
+  add('dps', 'damage per second');
+  add('dlc', 'downloadable content');
+  add('rpg', 'role-playing game');
+  add('mmo', 'massively multiplayer online game');
+  add('mmorpg', 'massively multiplayer online role-playing game');
+
+  section('Work and school');
+  add('eod', 'end of day');
+  add('eow', 'end of week');
+  add('eom', 'end of month');
+  add('eoy', 'end of year');
+  add('cob', 'close of business');
+  add('nrn', 'no reply necessary');
+  add('ooo', 'out of office', { c: 'upper' });
+  add('wfh', 'work from home');
+  add('ftw', 'for the win');
+  add('tbd', 'to be determined');
+  add('tbc', 'to be confirmed');
+  add('tba', 'to be announced');
+  add('eta', 'estimated time of arrival');
+  add('rsvp', 'please respond');
+  add('faq', 'frequently asked questions');
+  add('diy', 'do it yourself');
+  add('pto', 'paid time off');
+  add('wip', 'work in progress');
+  add('lgtm', 'looks good to me');
+  add('qq', 'quick question');
+  add('cc', 'carbon copy', { c: 'lu', notTime: true });
+  add('bcc', 'blind carbon copy', { c: 'lu' });
+  add('mtg', 'meeting');
+  add('appt', 'appointment');
+  add('pfa', 'please find attached');
+  add('rgds', 'regards');
+  add('fwd', 'forwarded');
+  add('poc', 'point of contact');
+  add('hw', 'homework');
+
+  section('Shortened and changed words');
+  add('u', 'you', { c: 'lower' });
+  add('r', 'are', { c: 'lower' });
+  add('y', 'why', { c: 'lower', next: NEXT_Y });
+  add('n', 'and', { between: true, c: 'lower' });
+  add('ur', 'your');
+  add('pls plz', 'please');
+  add('bc bcoz bcuz bcz coz cuz cos', 'because', { c: 'lower', noCall: true });
+  add('cause', 'because', { needApos: true });
+  add('bout', 'about', { apos: true, not: NOT_BOUT, c: 'lower' });
+  add('em', 'them', { needApos: true });
+  add('tho altho', 'though');
+  add('thru', 'through');
+  add('abt', 'about');
+  add('ppl', 'people');
+  add('msg', 'message');
+  add('txt', 'text');
+  add('pic', 'picture');
+  add('pics', 'pictures');
+  add('vid', 'video');
+  add('vids', 'videos');
+  add('fav fave', 'favorite');
+  add('convo', 'conversation');
+  add('bday', 'birthday');
+  add('rly rlly', 'really');
+  add('lil', 'little');
+  add('luv', 'love');
+  add('gud', 'good');
+  add('kewl kool', 'cool');
+  add('ova', 'over');
+  add('da tha', 'the', { c: 'lower' });
+  add('dat', 'that');
+  add('dem', 'them');
+  add('wen', 'when');
+  add('wut', 'what');
+  add('wht', 'what');
+  add('whn', 'when');
+  add('tht', 'that');
+  add('thn', 'then');
+  add('thnk', 'think');
+  add('knw kno', 'know');
+  add('frm', 'from');
+  add('wrk', 'work');
+  add('nxt', 'next');
+  add('dnt', "don't");
+  add('cnt', "can't");
+  add('nite', 'night');
+  add('tonite 2nite tnite', 'tonight');
+  add('2day', 'today');
+  add('tmrw tmr 2moro 2morrow 2mrw', 'tomorrow');
+  add('yday', 'yesterday');
+  add('wknd', 'weekend');
+  add('esp', 'especially', { c: 'lower' });
+  add('gr8', 'great');
+  add('l8r', 'later');
+  add('l8', 'late');
+  add('b4', 'before');
+  add('m8', 'mate');
+  add('w8', 'wait');
+  add('h8', 'hate');
+  add('4ever', 'forever');
+  add('2g2bt', 'too good to be true');
+  add('a3', 'anytime, anywhere, anyplace');
+  add('adbb', 'all done, bye bye');
+  add('dnbl8', "don't be late");
+  add('gab', 'getting a beer');
+  add('prolly', 'probably');
+  add('gonna', 'going to');
+  add('wanna', 'want to');
+  add('gotta', 'got to');
+  add('hafta hasta', 'have to');
+  add('needa', 'need to');
+  add('oughta', 'ought to');
+  add('kinda', 'kind of');
+  add('sorta', 'sort of');
+  add('outta', 'out of');
+  add('lotta', 'lot of');
+  add('dunno', "don't know");
+  add('lemme', 'let me');
+  add('gimme', 'give me');
+  add('gotcha', 'got you');
+  add('betcha', 'bet you');
+  add('dontcha', "don't you");
+  add('didja', 'did you');
+  add('couldja', 'could you');
+  add('wouldja', 'would you');
+  add('whatcha whatchu watchu', 'what are you');
+  add("c'mon cmon", 'come on');
+  add('ima imma', "I'm going to");
+  add('tryna', 'trying to');
+  add('finna boutta bouta', 'about to');
+  add('coulda', 'could have');
+  add('shoulda', 'should have');
+  add('woulda', 'would have');
+  add('musta', 'must have');
+  add('mighta', 'might have');
+  add('sumn sumthin', 'something');
+  add('nuttin', 'nothing');
+
+  section('Dropped letters');
+  [
+    ['goin', 'going'], ['doin', 'doing'], ['comin', 'coming'], ['tryin', 'trying'],
+    ['talkin', 'talking'], ['lookin', 'looking'], ['thinkin', 'thinking'], ['makin', 'making'],
+    ['havin', 'having'], ['gettin', 'getting'], ['playin', 'playing'], ['workin', 'working'],
+    ['waitin', 'waiting'], ['watchin', 'watching'], ['eatin', 'eating'], ['sleepin', 'sleeping'],
+    ['feelin', 'feeling'], ['lovin', 'loving'], ['livin', 'living'], ['runnin', 'running'],
+    ['sayin', 'saying'], ['tellin', 'telling'], ['knowin', 'knowing'], ['wonderin', 'wondering'],
+    ['hopin', 'hoping'], ['wishin', 'wishing'], ['hangin', 'hanging'], ['chillin', 'chilling'],
+    ['jokin', 'joking'], ['kiddin', 'kidding'], ['trippin', 'tripping'], ['vibin', 'vibing'],
+    ['lyin', 'lying'], ['cryin', 'crying'], ['nothin', 'nothing'], ['somethin', 'something'],
+    ['anythin', 'anything'], ['everythin', 'everything']
+  ].forEach(function (pair) { add(pair[0], pair[1], { dropG: true }); });
+
+  section('Missing apostrophes');
+  [
+    ['dont', "don't"], ['doesnt', "doesn't"], ['didnt', "didn't"], ['cant', "can't"],
+    ['couldnt', "couldn't"], ['wouldnt', "wouldn't"], ['shouldnt', "shouldn't"], ['wont', "won't"],
+    ['isnt', "isn't"], ['arent', "aren't"], ['wasnt', "wasn't"], ['werent', "weren't"],
+    ['hasnt', "hasn't"], ['havent', "haven't"], ['hadnt', "hadn't"], ['im', "I'm"],
+    ['ive', "I've"], ['youre', "you're"], ['theyre', "they're"], ['weve', "we've"],
+    ['thats', "that's"], ['whats', "what's"], ['hes', "he's"], ['shes', "she's"],
+    ['theres', "there's"], ['heres', "here's"], ['wheres', "where's"], ['whos', "who's"],
+    ['hows', "how's"], ['wouldve', "would've"], ['couldve', "could've"], ['shouldve', "should've"]
+  ].forEach(function (pair) { add(pair[0], pair[1]); });
+
+  // "god" always becomes "gosh"; typed swear words follow the censor setting.
+  // These are not listed in the glossary.
+  add('god', 'gosh', { keepCase: 'caps', typed: true });
+  add('goddamn goddamned', 'gosh {damn}', { keepCase: 'caps', typed: true });
+  add('goddamnit goddammit', 'gosh {dammit}', { keepCase: 'caps', typed: true });
+  Object.keys(SW).forEach(function (word) {
+    add(word, '{' + word + '}', { keepCase: true, typed: true });
+  });
+
+  // Multi-word phrases: src is a regular expression, label is shown in the glossary
+  var PRON = { him: 'his', her: 'her', them: 'their', me: 'my', us: 'our' };
+  var PHRASES = [
+    { src: 'no\\s+cap', label: 'no cap', rep: 'no lie' },
+    { src: 'touch\\s+grass', label: 'touch grass', rep: 'go outside (get off the internet)' },
+    { src: "it['’]?s\\s+giving", label: "it's giving", rep: 'it gives off the vibe of' },
+    { src: '(?:ate\\s+and\\s+)?left\\s+no\\s+crumbs', label: 'left no crumbs', rep: 'did it perfectly' },
+    {
+      src: 'let\\s+(?:him|her|them|me|us)\\s+cook',
+      label: 'let him cook',
+      gloss: 'let them do their thing',
+      rep: function (t) {
+        var who = t.trim().split(/\s+/)[1].toLowerCase();
+        return 'let ' + who + ' do ' + PRON[who] + ' thing';
+      }
+    },
+    { src: 'main\\s+character\\s+energy', label: 'main character energy', rep: 'acting like the star of the story' },
+    { src: 'spill\\s+the\\s+tea', label: 'spill the tea', rep: 'share the gossip' },
+    { src: "what['’]?s\\s+the\\s+tea", label: "what's the tea", rep: "what's the gossip" },
+    { src: 'vibe\\s+check', label: 'vibe check', rep: "a check on someone's mood" },
+    { src: 'the\\s+ick', label: 'the ick', rep: 'a sudden turn-off' },
+    { src: 'glow[\\s-]up', label: 'glow-up', rep: 'a big improvement in looks or confidence' },
+    { src: 'skill\\s+issue', label: 'skill issue', rep: "you're just not good enough" },
+    { src: 'fanum\\s+tax', label: 'fanum tax', rep: "taking a bite of someone else's food" },
+    { src: 'say\\s+less', label: 'say less', rep: 'understood, no need to explain' },
+    { src: 'hits\\s+different', label: 'hits different', rep: 'feels uniquely good' },
+    { src: 'no\\s+shot', label: 'no shot', rep: 'no way' },
+    { src: 'only\\s+in\\s+ohio', label: 'only in ohio', rep: 'only in a weird or cursed place' },
+    { src: 'ye(?:ah|a|h)?\\s+nah', label: 'yeah nah', rep: 'no (yes, but actually no)' },
+    { src: 'nah\\s+ye(?:ah|a|h)?', label: 'nah yeah', rep: 'yes (no, but actually yes)' },
+    {
+      src: 'red\\s+flags?',
+      label: 'red flag',
+      gloss: 'warning sign',
+      rep: function (t) { return /s$/i.test(t) ? 'warning signs' : 'warning sign'; }
+    },
+    {
+      src: 'green\\s+flags?',
+      label: 'green flag',
+      gloss: 'good sign',
+      rep: function (t) { return /s$/i.test(t) ? 'good signs' : 'good sign'; }
+    },
+    { src: 'rent\\s+free', label: 'rent free', rep: 'constantly on my mind' },
+    { src: 'caught\\s+in\\s+4k', label: 'caught in 4k', rep: 'caught red-handed (with clear proof)' },
+    { src: 'understood\\s+the\\s+assignment', label: 'understood the assignment', rep: 'did exactly what was needed, very well' },
+    { src: 'big\\s+yikes', label: 'big yikes', rep: 'very embarrassing' },
+    { src: 'locked\\s+in', label: 'locked in', rep: 'fully focused' },
+    { src: 'no\\s+thoughts\\s+head\\s+empty', label: 'no thoughts head empty', rep: 'a blank mind (a meme)' },
+    { src: 'brain\\s+rot', label: 'brain rot', rep: 'low-quality, addictive internet content (or its effect)' },
+    { src: 'crashing\\s+out', label: 'crashing out', rep: 'having an emotional meltdown' },
+    { src: 'aura\\s+points?', label: 'aura points', rep: 'social-coolness points' },
+    { src: 'aura\\s+farming', label: 'aura farming', rep: 'trying to seem cool' },
+    { src: 'negative\\s+aura', label: 'negative aura', rep: 'embarrassing behavior that lowers your coolness' },
+    { src: 'unspoken\\s+rizz', label: 'unspoken rizz', rep: 'charm that works without words' },
+    { src: 'w\\s+rizz', label: 'W rizz', rep: 'impressive flirting success' },
+    { src: 'l\\s+rizz', label: 'L rizz', rep: 'failed or awkward flirting' },
+    { src: 'six\\s+seven', label: 'six seven', rep: '(a Gen Alpha meme with no real meaning)' },
+    { src: 'ok\\s+boomer', label: 'ok boomer', rep: 'a dismissive reply to older people' },
+    { src: 'chronically\\s+online', label: 'chronically online', rep: 'spending too much time on the internet' },
+    { src: 'clock\\s+it', label: 'clock it', rep: 'notice the truth (or I agree)' },
+    { src: 'stand(?:ing)?\\s+on\\s+business', label: 'stand on business', rep: 'act in line with what you said you would' },
+    { src: 'millennial\\s+pause', label: 'millennial pause', rep: 'a short pause before speaking at the start of a video' },
+    { src: 'italian\\s+brain\\s*rot', label: 'italian brainrot', rep: 'nonsense AI videos with Italian-sounding gibberish' },
+    {
+      src: "i(?:['’]?m|\\s+am)\\s+dead(?!\\s+(?:tired|serious|wrong|set|end|ahead|center|cold|silent|last|body|man|certain|right|sure|weight))",
+      label: "i'm dead",
+      rep: "that's hilarious (I'm laughing so hard)"
+    }
+  ];
+  PHRASES.forEach(function (p) { p.re = new RegExp('^(?:' + p.src + ')$', 'i'); });
+
+  function matchPhrase(tok) {
+    for (var i = 0; i < PHRASES.length; i++) {
+      if (PHRASES[i].re.test(tok)) {
+        var rep = PHRASES[i].rep;
+        return typeof rep === 'function' ? rep(tok) : rep;
+      }
+    }
+    return null;
+  }
+
+  // Slash shorthand, emoticons and tone tags
+  var SLASH = {
+    'w/': 'with', 'w/o': 'without', 'w/e': 'whatever', 'w/in': 'within',
+    'b/c': 'because', 'b/w': 'between', 'n/a': 'not applicable',
+    's/o': 'shout out', 'h/o': 'hold on'
+  };
+  var EMO = {
+    '<3': '(heart)', '</3': '(broken heart)', '^_^': '(happy)', '-_-': '(annoyed)',
+    ':)': '(smiling)', ':(': '(sad)', ':d': '(grinning)', ':p': '(playful, tongue out)',
+    ';)': '(winking)', ':/': '(unsure)', ':|': '(neutral)', ':o': '(surprised)'
+  };
+  var TONES = {
+    s: '(sarcastic)', j: '(joking)', srs: '(serious)', hj: '(half joking)', gen: '(genuine)',
+    pos: '(positive tone)', neg: '(negative tone)', lh: '(lighthearted)', t: '(teasing)'
+  };
+
+  // Words with no vowels that are fine as they are (anything else becomes "???")
+  var NOVOWEL_OK = /^(h+m+|m+|sh+|ps+t|br+|pf+t|tsk|nth|zz+|gr+|mhm|mr|mrs|ms|dr|st|nd|rd|th|pm|vs|jr|sr|hr|hrs|wk|wks|yr|yrs|mo|mph|kph|bpm|cm|mm|km|kg|lb|lbs|oz|ml|mg|ft|tbsp|tsp|ctrl|pts|gb|kb|tb|hz|mhz|ghz|kwh|my|by|why|try|cry|dry|fly|fry|shy|sky|sly|spy|pry|wry|thy|gym|myth|lynx|hymn|sync|rhythm|nymph|crypt|gypsy|www|http|https|html|css|tv|pc|cd|dvd|usb|gps|cpu|gpu|pdf|sql|ppt)$/;
+
+  /* ==========================================================================
+     4. Translator
+     ========================================================================== */
+
+  var RE_SRC = [
+    /https?:\/\/\S+|www\.\S+|\S+@\S+\.\S+/.source,
+    /(?<!\S)(?:<3|<\/3|\^_\^|-_-|:\)|:\(|:D|:P|:O|:\||:\/|;\))(?!\S)/.source,
+    '(?<![\\w\'’])(?:' + PHRASES.map(function (p) { return p.src; }).join('|') + ')(?![\\w\'’])',
+    /(?<![\w\/])(?:w\/o|w\/e|w\/in|b\/c|b\/w|n\/a|s\/o|h\/o)(?![\w\/])|(?<![\w\/])w\/(?!\/)/.source,
+    /(?<![\w\/])\/(?:srs|hj|gen|pos|neg|lh|s|j|t)(?![\w\/])/.source,
+    /(?<!\S)\^+(?!\S)/.source,
+    'tl;dr',
+    /[a-z0-9]+(?:['’][a-z]+)*/.source
+  ].join('|');
+
+  function allCaps(tok) {
+    return tok.length > 1 && tok === tok.toUpperCase() && /[A-Z]/.test(tok);
+  }
+
+  function isShout(text) {
+    var words = text.match(/\b[A-Za-z]{2,}\b/g) || [];
+    if (words.length < 3) return false;
+    var upper = words.filter(function (w) { return w === w.toUpperCase(); }).length;
+    return upper / words.length >= 0.6;
+  }
+
+  function isUnknown(tok) {
+    if (!/^[A-Za-z]+$/.test(tok) || tok.length < 2) return false;
+    var lower = tok.toLowerCase();
+    if (tok !== lower && tok !== tok.toUpperCase()) return false;
+    if (/[aeiou]/.test(lower)) return false;
+    return !NOVOWEL_OK.test(lower);
+  }
+
+  function atClauseStart(before) {
+    return /(^|[.!?,;:\n])\s*$/.test(before);
+  }
+
+  function standaloneAt(before, after) {
+    return /(^|[.!?,;\n])\s*$/.test(before) && /^\s*([.!?,;\n]|$)/.test(after);
+  }
+
+  // Looks a token up, applying the entry's case rule and handling stretched spellings
+  function find(tok) {
+    var lower = tok.toLowerCase().replace(/’/g, "'");
+    var e = D[lower];
+    if (!e && lower.length >= 4) {
+      e = D[lower.replace(/(.)\1{2,}/g, '$1')] || D[lower.replace(/(.)\1{2,}/g, '$1$1')];
+      if (e === D.god) e = null; // "gooood" is not "god"
+    }
+    if (!e) return null;
+    if (e.c === 'upper' && !(tok === tok.toUpperCase() && tok.length >= 2)) return e.alt || null;
+    if (e.c === 'upper1' && !(tok.length === 1 && tok === tok.toUpperCase() && /[A-Z]/.test(tok))) return null;
+    if (e.c === 'lower' && tok !== tok.toLowerCase()) return null;
+    if (e.c === 'lu' && tok !== tok.toLowerCase() && tok !== tok.toUpperCase()) return null;
+    return e;
+  }
+
+  // Decides from the surrounding words whether an entry applies here
+  function allowed(e, before, after) {
+    if (e.notTime && /\d\s*$/.test(before)) return false;
+    if (e.noHyphen && (/-$/.test(before) || /^-/.test(after))) return false;
+    if (e.not && e.not.test(before)) return false;
+    if (e.notNext && e.notNext.test(after)) return false;
+    if (e.noCall && /^\s*\(/.test(after)) return false;
+    if (e.next && !e.next.test(after)) return false;
+    if (e.start && !atClauseStart(before)) return false;
+    if (e.between && !(/\w\s+$/.test(before) && /^\s+\w/.test(after))) return false;
+    if (e.c === 'upper1' && !e.ctx && !e.ctxAfter && (/[.\w]$/.test(before) || /^[.\w]/.test(after))) return false;
+    if (e.both) {
+      return !!(e.ctx && e.ctx.test(before) && e.ctxAfter && e.ctxAfter.test(after));
+    }
+    if (e.standalone || e.ctx || e.ctxAfter || e.orStandalone || e.startNext) {
+      return !!((e.ctx && e.ctx.test(before)) ||
+        (e.ctxAfter && e.ctxAfter.test(after)) ||
+        (e.startNext && atClauseStart(before) && e.startNext.test(after)) ||
+        ((e.standalone || e.orStandalone) && standaloneAt(before, after)));
+    }
+    return true;
+  }
+
+  function caseMode(e, tok, atStart, shout) {
+    if (e.keepCase === 'caps') {
+      if (allCaps(tok)) return 'upper';
+      return atStart ? 'cap' : null;
+    }
+    if (e.keepCase) {
+      if (allCaps(tok)) return 'upper';
+      if (tok !== tok.toLowerCase()) return 'cap';
+      return null;
+    }
+    if (shout && allCaps(tok)) return 'upper';
+    if (atStart) return 'cap';
+    return null;
+  }
+
+  // Splits "what the {fuck}" into plain text and swear pieces, applying capitalisation
+  function makeSegments(rep, cm) {
+    var segs = [], re = /\{(\w+)\}/g, last = 0, m;
+    while ((m = re.exec(rep)) !== null) {
+      if (m.index > last) segs.push({ t: rep.slice(last, m.index) });
+      segs.push({ k: m[1] });
+      last = m.index + m[0].length;
+    }
+    if (last < rep.length) segs.push({ t: rep.slice(last) });
+    if (cm === 'upper') {
+      segs.forEach(function (g) { if (g.k) g.up = true; else g.t = g.t.toUpperCase(); });
+    } else if (cm === 'cap' && segs.length) {
+      var first = segs[0];
+      if (first.k) first.cap = true; else first.t = first.t.charAt(0).toUpperCase() + first.t.slice(1);
+    }
+    return segs;
+  }
+
+  function swearText(seg) {
+    var s = SW[seg.k][MODE === 'blur' ? 0 : 1];
+    if (seg.up) return s.toUpperCase();
+    if (seg.cap) return s.charAt(0).toUpperCase() + s.slice(1);
+    return s;
+  }
+
+  function partText(p) {
+    if (p.segs) return p.segs.map(function (g) { return g.k ? swearText(g) : g.t; }).join('');
+    return p.t;
+  }
+
+  function plain(parts) {
+    return parts.map(partText).join('');
+  }
+
+  function translate(text) {
+    var parts = [], last = 0, m;
+    var shout = isShout(text);
+    var re = new RegExp(RE_SRC, 'gi');
+
+    while ((m = re.exec(text)) !== null) {
+      var tok = m[0], start = m.index, end = start + tok.length;
+      var low = tok.toLowerCase();
+      var before = text.slice(0, start), after = text.slice(end);
+      var rep = null, cm = null, unk = false, typed = false;
+
+      if (/^(https?:|www\.)/i.test(tok) || tok.indexOf('@') > -1) continue;
+
+      if (EMO[low]) {
+        rep = EMO[low];
+      } else if (SLASH[low]) {
+        rep = SLASH[low];
+      } else if (tok.charAt(0) === '/') {
+        rep = TONES[low.slice(1)] || null;
+      } else if (tok.charAt(0) === '^') {
+        rep = '(the message above)';
+      } else {
+        var phrase = matchPhrase(tok);
+        if (phrase !== null) {
+          rep = phrase;
+          cm = (shout && allCaps(tok)) ? 'upper' : (/(^|[.!?\n])\s*$/.test(before) ? 'cap' : null);
+        } else {
+          var hit = find(tok), e = hit;
+          var quote = /['’]$/.test(before);
+          if (e && e.needApos && !quote) e = null;
+          if (e && !allowed(e, quote && (e.apos || e.needApos) ? before.slice(0, -1) : before, after)) e = null;
+          if (e) {
+            if ((e.apos || e.needApos) && quote) { start -= 1; before = before.slice(0, -1); }
+            if (e.dropG && /^['’]/.test(after)) end += 1;
+            rep = e.fn ? e.fn(before) : e.t;
+            typed = !!e.typed;
+            cm = caseMode(e, tok, /(^|[.!?\n])\s*$/.test(before), shout);
+          } else if (!hit && isUnknown(tok)) {
+            unk = true;
+          }
+        }
+      }
+
+      if (rep === null && !unk) continue;
+      if (start > last) parts.push({ t: text.slice(last, start) });
+      parts.push(unk
+        ? { t: '???', from: tok, unk: true }
+        : { from: tok, segs: makeSegments(rep, cm), typed: typed });
+      last = end;
+      re.lastIndex = end;
+    }
+    if (last < text.length) parts.push({ t: text.slice(last) });
+    return parts;
+  }
+
+  /* ==========================================================================
+     5. Glossary data and colour helpers
+     ========================================================================== */
+
+  // Returns [{ name, items: [{ term, text }] }] for every expression the translator knows
+  function buildGlossary() {
+    var groups = [], byName = {};
+    function bucket(name) {
+      if (!byName[name]) {
+        byName[name] = { name: name, items: [] };
+        groups.push(byName[name]);
+      }
+      return byName[name];
+    }
+
+    var keysByEntry = new Map();
+    Object.keys(D).forEach(function (key) {
+      var entry = D[key];
+      if (!keysByEntry.has(entry)) keysByEntry.set(entry, []);
+      keysByEntry.get(entry).push(key);
+    });
+    keysByEntry.forEach(function (keys, entry) {
+      if (entry.typed) return;
+      var text = entry.gloss || entry.t;
+      if (entry.alt) text += ' (lowercase: ' + entry.alt.t + ')';
+      bucket(entry.cat || 'Other').items.push({ term: keys.join(' / '), text: text });
+    });
+
+    var phrases = bucket('Phrases');
+    PHRASES.forEach(function (p) {
+      phrases.items.push({ term: p.label, text: p.gloss || (typeof p.rep === 'string' ? p.rep : '') });
+    });
+    var slash = bucket('Slash shorthand');
+    Object.keys(SLASH).forEach(function (k) { slash.items.push({ term: k, text: SLASH[k] }); });
+    var tones = bucket('Tone tags');
+    Object.keys(TONES).forEach(function (k) { tones.items.push({ term: '/' + k, text: TONES[k].replace(/[()]/g, '') }); });
+    var emos = bucket('Emoticons');
+    Object.keys(EMO).forEach(function (k) {
+      emos.items.push({ term: k === ':d' ? ':D' : (k === ':p' ? ':P' : (k === ':o' ? ':O' : k)), text: EMO[k].replace(/[()]/g, '') });
+    });
+
+    groups.forEach(function (g) {
+      if (g.name === 'Slash shorthand' || g.name === 'Tone tags' || g.name === 'Emoticons') return;
+      g.items.sort(function (a, b) { return a.term.localeCompare(b.term); });
+    });
+    return groups;
+  }
+
+  // Colour maths for the custom palette
+  function hexToRgb(hex) {
+    var n = parseInt(hex.slice(1), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  function rgbToHex(rgb) {
+    return '#' + rgb.map(function (v) {
+      var h = Math.max(0, Math.min(255, Math.round(v))).toString(16);
+      return h.length < 2 ? '0' + h : h;
+    }).join('');
+  }
+  function mix(a, b, t) {
+    var A = hexToRgb(a), B = hexToRgb(b);
+    return rgbToHex(A.map(function (v, i) { return v + (B[i] - v) * t; }));
+  }
+  function luminance(hex) {
+    var c = hexToRgb(hex).map(function (v) {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  }
+  function contrast(a, b) {
+    var x = luminance(a), y = luminance(b);
+    return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+  }
+  function readable(bg) {
+    return contrast(bg, '#0F1419') >= contrast(bg, '#FFFFFF') ? '#0F1419' : '#FFFFFF';
+  }
+  function alpha(hex, a) {
+    return 'rgba(' + hexToRgb(hex).join(', ') + ', ' + a + ')';
+  }
+
+  // Turns a primary and secondary colour into the full token set
+  function deriveTokens(primary, secondary, dark) {
+    var chat = dark ? mix(secondary, '#000000', 0.8) : mix(secondary, '#FFFFFF', 0.78);
+    var ink = readable(chat);
+    var bar = dark ? mix(chat, '#FFFFFF', 0.06) : mix(chat, '#FFFFFF', 0.55);
+    var primaryInk = readable(primary);
+    var secondaryInk = readable(secondary);
+    var accent = contrast(primary, chat) >= 3 ? primary : ink;
+    return {
+      '--bg': dark ? mix(chat, '#000000', 0.45) : mix(chat, '#000000', 0.07),
+      '--chat': chat,
+      '--bar': bar,
+      '--bar-fg': ink,
+      '--bar-line': mix(chat, ink, 0.16),
+      '--ink': ink,
+      '--muted': mix(ink, chat, 0.32),
+      '--line': mix(chat, ink, 0.16),
+      '--surface': bar,
+      '--chip': mix(chat, ink, 0.09),
+      '--sent-bg': primary,
+      '--sent-fg': primaryInk,
+      '--recv-bg': secondary,
+      '--recv-fg': secondaryInk,
+      '--recv-line': mix(secondary, secondaryInk, 0.14),
+      '--stamp-sent': mix(primaryInk, primary, 0.25),
+      '--stamp-recv': mix(secondaryInk, secondary, 0.25),
+      '--field-bg': dark ? mix(chat, '#FFFFFF', 0.08) : mix(chat, '#FFFFFF', 0.7),
+      '--field-fg': ink,
+      '--field-line': mix(chat, ink, 0.2),
+      '--field-ph': mix(ink, chat, 0.38),
+      '--send-bg': primary,
+      '--send-fg': primaryInk,
+      '--accent': accent,
+      '--ring': alpha(accent, 0.4)
+    };
+  }
+
+  // Test hook: no document means we are running under Node
+  if (typeof document === 'undefined') {
+    globalThis.__api = {
+      translate: translate,
+      plain: plain,
+      dict: D,
+      phrases: PHRASES,
+      buildGlossary: buildGlossary,
+      deriveTokens: deriveTokens,
+      contrast: contrast,
+      setMode: function (m) { MODE = m; }
+    };
+    return;
+  }
+
+  /* ==========================================================================
+     6. Interface
+     ========================================================================== */
+
+  var $ = function (id) { return document.getElementById(id); };
+  var root = document.documentElement;
+  var thread = $('thread');
+  var composer = $('composer');
+  var input = $('input');
+  var clearBtn = $('clear');
+  var modeBlur = $('mBlur');
+  var modeReplace = $('mReplace');
+  var scrim = $('scrim');
+
+  var reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var messages = [];        // received messages: { parts, textEl }
+  var pending = [];         // translations still "typing": { timer, node }
+  var ghost = null;         // example pair shown until the first translation
+  var exampleIndex = 0;
+  var copyTimer = null;
+
+  function remember(key, value) { try { localStorage.setItem(key, value); } catch (err) { /* optional */ } }
+  function recall(key) { try { return localStorage.getItem(key); } catch (err) { return null; } }
+
+  function make(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  function svg(markup, className) {
+    var holder = make('span');
+    holder.innerHTML = '<svg class="' + className + '" viewBox="0 0 16 16" aria-hidden="true">' + markup + '</svg>';
+    return holder.firstChild;
+  }
+
+  // Timestamps always come from the device clock
+  function stampNow(el) {
+    var now = new Date();
+    el.dateTime = now.toISOString();
+    el.textContent = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    el.title = now.toLocaleString();
+  }
+
+  /* ---- Messages ---- */
+
+  // Fills an element with translated parts (swears follow the current mode)
+  function fill(target, parts) {
+    target.textContent = '';
     parts.forEach(function (p) {
       if (p.unk) {
-        var mk = document.createElement('mark');
-        mk.className = 'unk';
-        mk.title = p.from;
-        mk.textContent = p.t;
-        out.appendChild(mk);
-      } else if (p.from) {
-        var sp = document.createElement('span');
-        sp.className = 'swap';
-        sp.title = p.from;
-        sp.textContent = p.t;
-        out.appendChild(sp);
+        var mark = make('mark', 'unk', p.t);
+        mark.title = p.from;
+        target.appendChild(mark);
+      } else if (p.segs) {
+        var span = make('span', 'swap');
+        if (!p.typed) span.title = p.from;
+        p.segs.forEach(function (g) {
+          if (g.k) {
+            span.appendChild(make('span', 'sw' + (MODE === 'blur' ? ' blur' : ''), swearText(g)));
+          } else {
+            span.appendChild(document.createTextNode(g.t));
+          }
+        });
+        target.appendChild(span);
       } else {
-        out.appendChild(document.createTextNode(p.t));
+        target.appendChild(document.createTextNode(p.t));
       }
     });
-    lastPlain = plain(parts);
-    copyBtn.disabled = false;
   }
 
-  function showExample(n) {
-    idx = n;
-    ta.classList.add('swapping');
-    out.classList.add('swapping');
+  function buildMessage(kind, options) {
+    var root = make('article', 'msg ' + kind + (options.ghost ? ' ghost' : ' fresh'));
+    var main = make('div', 'msg-main');
+    var row = make('div', 'bubble-row');
+    var bubble = make('div', 'bubble');
+    var text = make('p', 'text');
+    var stamp = make('time', 'stamp');
+
+    if (options.ghost) root.setAttribute('aria-hidden', 'true');
+    stampNow(stamp);
+
+    if (kind === 'recv') {
+      var head = make('div', 'msg-head');
+      head.appendChild(make('span', 'name', NAMES.recv));
+      main.appendChild(head);
+    }
+
+    bubble.appendChild(text);
+    bubble.appendChild(stamp);
+    row.appendChild(bubble);
+
+    var copyBtn = null;
+    if (kind === 'recv') {
+      copyBtn = make('button', 'copy');
+      copyBtn.type = 'button';
+      copyBtn.setAttribute('aria-label', 'Copy translation');
+      copyBtn.appendChild(svg('<rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 5.5v-1a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h1"/>', 'i-copy'));
+      copyBtn.appendChild(svg('<path d="M3.5 8.5l3 3 6-7"/>', 'i-check'));
+      row.appendChild(copyBtn);
+    }
+
+    main.appendChild(row);
+    root.appendChild(main);
+    return { root: root, textEl: text, stampEl: stamp, copyBtn: copyBtn };
+  }
+
+  function buildTyping() {
+    var root = make('article', 'msg recv fresh');
+    var main = make('div', 'msg-main');
+    var head = make('div', 'msg-head');
+    var row = make('div', 'bubble-row');
+    var bubble = make('div', 'bubble');
+    var dots = make('span', 'dots');
+
+    root.setAttribute('aria-hidden', 'true');
+    head.appendChild(make('span', 'name', NAMES.recv));
+    dots.appendChild(make('i'));
+    dots.appendChild(make('i'));
+    dots.appendChild(make('i'));
+    bubble.appendChild(dots);
+    row.appendChild(bubble);
+    main.appendChild(head);
+    main.appendChild(row);
+    root.appendChild(main);
+    return root;
+  }
+
+  function addSent(text) {
+    var msg = buildMessage('sent', {});
+    msg.textEl.textContent = text;
+    thread.appendChild(msg.root);
+  }
+
+  function makeReceived(parts) {
+    var msg = buildMessage('recv', {});
+    var record = { parts: parts, textEl: msg.textEl };
+    fill(msg.textEl, parts);
+    msg.copyBtn.addEventListener('click', function () { copyText(plain(record.parts), msg.copyBtn); });
+    messages.push(record);
+    return msg.root;
+  }
+
+  function scrollToEnd() {
+    thread.scrollTo({ top: thread.scrollHeight, behavior: reduceMotion ? 'auto' : 'smooth' });
+  }
+
+  /* ---- Example pair (placeholder-style) ---- */
+
+  function showGhost() {
+    var sent = buildMessage('sent', { ghost: true });
+    var recv = buildMessage('recv', { ghost: true });
+    ghost = { sent: sent, recv: recv };
+    thread.insertBefore(recv.root, thread.firstChild);
+    thread.insertBefore(sent.root, recv.root);
+    paintGhost();
+  }
+
+  function paintGhost() {
+    if (!ghost) return;
+    ghost.sent.textEl.textContent = EXAMPLES[exampleIndex];
+    fill(ghost.recv.textEl, translate(EXAMPLES[exampleIndex]));
+    stampNow(ghost.sent.stampEl);
+    stampNow(ghost.recv.stampEl);
+  }
+
+  function hideGhost() {
+    if (!ghost) return;
+    ghost.sent.root.remove();
+    ghost.recv.root.remove();
+    ghost = null;
+  }
+
+  function showExample(index) {
+    exampleIndex = index;
+    input.classList.add('swapping');
+    if (ghost) {
+      ghost.sent.root.classList.add('swapping');
+      ghost.recv.root.classList.add('swapping');
+    }
     setTimeout(function () {
-      ta.placeholder = EX[idx];
-      ta.classList.remove('swapping');
-      if (!hasResult) renderIdle(); else out.classList.remove('swapping');
-    }, reduce ? 0 : 180);
+      input.placeholder = EXAMPLES[exampleIndex];
+      input.classList.remove('swapping');
+      if (ghost) {
+        paintGhost();
+        ghost.sent.root.classList.remove('swapping');
+        ghost.recv.root.classList.remove('swapping');
+      }
+    }, reduceMotion ? 0 : 180);
   }
 
-  go.addEventListener('click', function () {
-    var v = ta.value;
-    if (!v.trim()) { ta.focus(); return; }
-    hasResult = true;
-    renderResult(translate(v));
+  /* ---- Composer ---- */
+
+  function fit() {
+    var max = 144;
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, max) + 'px';
+    input.style.overflowY = input.scrollHeight > max ? 'auto' : 'hidden';
+  }
+
+  function syncClear() {
+    clearBtn.hidden = !input.value;
+  }
+
+  function send() {
+    var value = input.value.trim();
+    if (!value) { input.focus(); return; }
+
+    hideGhost();
+    addSent(value);
+
+    // Typing dots show for a moment, then the translation takes their place
+    var typing = buildTyping();
+    var entry = { node: typing };
+    var delay = reduceMotion ? TYPING_MS.reduced : Math.min(TYPING_MS.max, TYPING_MS.base + value.length * TYPING_MS.perChar);
+    var parts = translate(value);
+    thread.appendChild(typing);
+    pending.push(entry);
+    entry.timer = setTimeout(function () {
+      pending.splice(pending.indexOf(entry), 1);
+      typing.replaceWith(makeReceived(parts));
+      scrollToEnd();
+    }, delay);
+
+    input.value = '';
+    syncClear();
+    fit();
+    scrollToEnd();
+    input.focus();
+  }
+
+  composer.addEventListener('submit', function (e) {
+    e.preventDefault();
+    send();
+  });
+
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+      e.preventDefault();
+      send();
+    }
+  });
+
+  input.addEventListener('input', function () {
+    syncClear();
+    fit();
   });
 
   clearBtn.addEventListener('click', function () {
-    ta.value = '';
-    hasResult = false;
-    renderIdle();
+    input.value = '';
     syncClear();
     fit();
-    ta.focus();
+    input.focus();
   });
 
-  ta.addEventListener('input', function () {
-    syncClear();
-    fit();
-    if (!ta.value.trim() && hasResult) { hasResult = false; renderIdle(); }
-  });
-  ta.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); go.click(); }
-  });
+  /* ---- Copy ---- */
 
-  function flashDone() {
-    copyBtn.classList.add('done');
+  function flashDone(btn) {
+    btn.classList.add('done');
     clearTimeout(copyTimer);
-    copyTimer = setTimeout(function () { copyBtn.classList.remove('done'); }, 1600);
+    copyTimer = setTimeout(function () { btn.classList.remove('done'); }, 1600);
   }
-  function fallbackCopy() {
+
+  function fallbackCopy(text, btn) {
+    var temp = document.createElement('textarea');
+    temp.value = text;
+    temp.setAttribute('readonly', '');
+    temp.style.position = 'fixed';
+    temp.style.opacity = '0';
+    document.body.appendChild(temp);
+    temp.select();
     try {
-      var r = document.createRange();
-      r.selectNodeContents(out);
-      var s = window.getSelection();
-      s.removeAllRanges();
-      s.addRange(r);
-      if (document.execCommand && document.execCommand('copy')) flashDone();
-    } catch (err) { /* the text stays selected so it can be copied by hand */ }
+      if (document.execCommand && document.execCommand('copy')) flashDone(btn);
+    } catch (err) { /* nothing more to try */ }
+    temp.remove();
   }
-  copyBtn.addEventListener('click', function () {
-    if (copyBtn.disabled) return;
+
+  function copyText(text, btn) {
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(lastPlain).then(flashDone, fallbackCopy);
-      } else {
-        fallbackCopy();
+        navigator.clipboard.writeText(text).then(function () { flashDone(btn); }, function () { fallbackCopy(text, btn); });
+        return;
       }
-    } catch (err) { fallbackCopy(); }
+    } catch (err) { /* fall through */ }
+    fallbackCopy(text, btn);
+  }
+
+  /* ---- Glossary ---- */
+
+  var glossBody = $('glossBody');
+  var glossSearch = $('glossSearch');
+  var glossMeanings = [];   // { el, text }: re-rendered when the censor setting changes
+  var glossGroups = [];     // { el, items: [{ el, hay }] }
+  var glossEmpty = null;
+
+  function renderMeaning(target, text) {
+    target.textContent = '';
+    makeSegments(text, null).forEach(function (g) {
+      if (g.k) {
+        target.appendChild(make('span', 'sw' + (MODE === 'blur' ? ' blur' : ''), swearText(g)));
+      } else {
+        target.appendChild(document.createTextNode(g.t));
+      }
+    });
+  }
+
+  function buildGlossaryDom() {
+    buildGlossary().forEach(function (group) {
+      var section = make('section');
+      var list = make('div', 'gloss-list');
+      var record = { el: section, items: [] };
+      section.appendChild(make('h3', 'gloss-cat', group.name));
+      group.items.forEach(function (item) {
+        var row = make('div', 'gloss-item');
+        var def = make('p', 'gloss-def');
+        row.appendChild(make('p', 'gloss-term', item.term));
+        row.appendChild(def);
+        list.appendChild(row);
+        renderMeaning(def, item.text);
+        glossMeanings.push({ el: def, text: item.text });
+        record.items.push({ el: row, hay: (item.term + ' ' + item.text.replace(/[{}]/g, '')).toLowerCase() });
+      });
+      section.appendChild(list);
+      glossBody.appendChild(section);
+      glossGroups.push(record);
+    });
+    glossEmpty = make('p', 'gloss-empty', 'nothing found');
+    glossEmpty.hidden = true;
+    glossBody.appendChild(glossEmpty);
+  }
+
+  function filterGlossary() {
+    var q = glossSearch.value.trim().toLowerCase();
+    var any = false;
+    glossGroups.forEach(function (group) {
+      var shown = 0;
+      group.items.forEach(function (item) {
+        var match = !q || item.hay.indexOf(q) !== -1;
+        item.el.hidden = !match;
+        if (match) shown++;
+      });
+      group.el.hidden = shown === 0;
+      if (shown) any = true;
+    });
+    glossEmpty.hidden = any;
+  }
+  glossSearch.addEventListener('input', filterGlossary);
+
+  /* ---- Settings: censor method, appearance, colours, clear chat ---- */
+
+  function setMode(mode, save) {
+    MODE = mode;
+    modeBlur.setAttribute('aria-pressed', mode === 'blur' ? 'true' : 'false');
+    modeReplace.setAttribute('aria-pressed', mode === 'replace' ? 'true' : 'false');
+    if (save) remember('sst-mode', mode);
+    messages.forEach(function (rec) { fill(rec.textEl, rec.parts); });
+    glossMeanings.forEach(function (g) { renderMeaning(g.el, g.text); });
+    paintGhost();
+  }
+  modeBlur.addEventListener('click', function () { setMode('blur', true); });
+  modeReplace.addEventListener('click', function () { setMode('replace', true); });
+
+  var DEFAULT_COLORS = { p: '#0b7a6b', s: '#d6ebe5' };
+  var PRESETS = [
+    { name: 'Teal', p: '#0b7a6b', s: '#d6ebe5' },
+    { name: 'Ocean', p: '#1d5fd1', s: '#dce8fb' },
+    { name: 'Grape', p: '#7a3fd1', s: '#e8ddfa' },
+    { name: 'Sunset', p: '#d1481d', s: '#fbe0d5' },
+    { name: 'Rose', p: '#c2255c', s: '#fadce7' },
+    { name: 'Mono', p: '#2b2b2b', s: '#e4e4e4' }
+  ];
+  var TOKEN_NAMES = Object.keys(deriveTokens('#000000', '#FFFFFF', false));
+  var colors = null; // { p, s } while custom colours are active, otherwise null
+  var colorPrimary = $('colorPrimary');
+  var colorSecondary = $('colorSecondary');
+  var swatchesEl = $('swatches');
+  var appearanceBtns = document.querySelectorAll('[data-appearance]');
+
+  function resolveDark() {
+    var forced = root.getAttribute('data-appearance');
+    if (forced) return forced === 'dark';
+    var host = root.getAttribute('data-theme');
+    if (host) return host === 'dark';
+    return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  }
+
+  function applyColors() {
+    TOKEN_NAMES.forEach(function (name) { root.style.removeProperty(name); });
+    root.style.removeProperty('color-scheme');
+    if (colors) {
+      var dark = resolveDark();
+      var tokens = deriveTokens(colors.p, colors.s, dark);
+      Object.keys(tokens).forEach(function (name) { root.style.setProperty(name, tokens[name]); });
+      root.style.setProperty('color-scheme', dark ? 'dark' : 'light');
+    }
+    var swatches = swatchesEl.querySelectorAll('.swatch');
+    swatches.forEach(function (btn, i) {
+      var on = !!colors && colors.p === PRESETS[i].p && colors.s === PRESETS[i].s;
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
+  function setColors(next, save) {
+    colors = next;
+    var shown = next || DEFAULT_COLORS;
+    colorPrimary.value = shown.p;
+    colorSecondary.value = shown.s;
+    applyColors();
+    if (save) remember('sst-colors', next ? JSON.stringify(next) : '');
+  }
+
+  function setAppearance(value, save) {
+    if (value === 'light' || value === 'dark') root.setAttribute('data-appearance', value);
+    else root.removeAttribute('data-appearance');
+    appearanceBtns.forEach(function (btn) {
+      btn.setAttribute('aria-pressed', btn.getAttribute('data-appearance') === (value || 'system') ? 'true' : 'false');
+    });
+    applyColors();
+    if (save) remember('sst-appearance', value);
+  }
+
+  appearanceBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () { setAppearance(btn.getAttribute('data-appearance'), true); });
   });
 
+  PRESETS.forEach(function (preset) {
+    var btn = make('button', 'swatch');
+    btn.type = 'button';
+    btn.setAttribute('aria-label', preset.name);
+    btn.setAttribute('aria-pressed', 'false');
+    btn.title = preset.name;
+    btn.style.setProperty('--p', preset.p);
+    btn.style.setProperty('--s', preset.s);
+    btn.addEventListener('click', function () { setColors({ p: preset.p, s: preset.s }, true); });
+    swatchesEl.appendChild(btn);
+  });
+
+  function onPick() {
+    setColors({ p: colorPrimary.value, s: colorSecondary.value }, true);
+  }
+  colorPrimary.addEventListener('input', onPick);
+  colorSecondary.addEventListener('input', onPick);
+  $('resetColors').addEventListener('click', function () { setColors(null, true); });
+
+  // Keep custom colours in step with the system or host theme
+  if (window.matchMedia) {
+    var scheme = window.matchMedia('(prefers-color-scheme: dark)');
+    var onScheme = function () { if (colors) applyColors(); };
+    if (scheme.addEventListener) scheme.addEventListener('change', onScheme);
+    else if (scheme.addListener) scheme.addListener(onScheme);
+  }
+  if (window.MutationObserver) {
+    new MutationObserver(function () { if (colors) applyColors(); })
+      .observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+  }
+
+  $('clearChat').addEventListener('click', function () {
+    pending.forEach(function (p) { clearTimeout(p.timer); });
+    pending = [];
+    thread.textContent = '';
+    messages = [];
+    ghost = null;
+    showGhost();
+    closeDrawer();
+  });
+
+  /* ---- Right-edge tabs and drawers ---- */
+
+  var drawers = {
+    why: { tab: $('tabWhy'), panel: $('drawerWhy') },
+    glossary: { tab: $('tabGlossary'), panel: $('drawerGlossary') },
+    settings: { tab: $('tabSettings'), panel: $('drawerSettings') }
+  };
+  var openKey = null;
+
+  function openDrawer(key) {
+    if (openKey) closeDrawer(true);
+    var d = drawers[key];
+    openKey = key;
+    d.panel.classList.add('open');
+    d.tab.setAttribute('aria-expanded', 'true');
+    scrim.classList.add('open');
+    d.panel.querySelector('.drawer-close').focus({ preventScroll: true });
+  }
+
+  function closeDrawer(keepFocus) {
+    if (!openKey) return;
+    var d = drawers[openKey];
+    d.panel.classList.remove('open');
+    d.tab.setAttribute('aria-expanded', 'false');
+    scrim.classList.remove('open');
+    if (!keepFocus) d.tab.focus({ preventScroll: true });
+    openKey = null;
+  }
+
+  Object.keys(drawers).forEach(function (key) {
+    drawers[key].tab.addEventListener('click', function () {
+      if (openKey === key) closeDrawer(); else openDrawer(key);
+    });
+    drawers[key].panel.querySelector('.drawer-close').addEventListener('click', function () { closeDrawer(); });
+  });
+  scrim.addEventListener('click', function () { closeDrawer(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeDrawer();
+  });
+
+  /* ---- Start up ---- */
+
   setInterval(function () {
-    if (reduce || document.hidden || hasResult || ta.value || document.activeElement === ta) return;
-    showExample((idx + 1) % EX.length);
+    if (reduceMotion || document.hidden || input.value || document.activeElement === input) return;
+    showExample((exampleIndex + 1) % EXAMPLES.length);
   }, 5000);
 
-  ta.placeholder = EX[0];
-  renderIdle();
+  // Example timestamps keep following the real clock
+  setInterval(function () {
+    if (ghost && !document.hidden) {
+      stampNow(ghost.sent.stampEl);
+      stampNow(ghost.recv.stampEl);
+    }
+  }, 15000);
+
+  buildGlossaryDom();
+
+  var savedMode = recall('sst-mode');
+  if (savedMode === 'replace') setMode('replace', false);
+
+  var savedAppearance = recall('sst-appearance');
+  setAppearance(savedAppearance === 'light' || savedAppearance === 'dark' ? savedAppearance : 'system', false);
+
+  try {
+    var savedColors = JSON.parse(recall('sst-colors') || 'null');
+    if (savedColors && /^#[0-9a-f]{6}$/i.test(savedColors.p) && /^#[0-9a-f]{6}$/i.test(savedColors.s)) {
+      setColors(savedColors, false);
+    }
+  } catch (err) { /* ignore a damaged saved value */ }
+
+  input.placeholder = EXAMPLES[0];
+  showGhost();
   syncClear();
   fit();
 })();
